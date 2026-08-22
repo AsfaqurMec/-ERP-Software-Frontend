@@ -1,0 +1,27 @@
+{
+  "name": "@inventory/web",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "node \"node_modules/next/dist/bin/next\" dev",
+    "build": "node \"node_modules/next/dist/bin/next\" build",
+    "start": "node \"node_modules/next/dist/bin/next\" start",
+    "lint": "node \"node_modules/next/dist/bin/next\" lint"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.74.9",
+    "i18next": "^26.4.0",
+    "lucide-react": "^0.511.0",
+    "next": "^15.3.2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-i18next": "^17.0.12",
+    "recharts": "^2.15.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21",
+    "@types/react": "^19.1.4",
+    "@types/react-dom": "^19.1.5",
+    "typescript": "^5.8.3"
+  }
+}

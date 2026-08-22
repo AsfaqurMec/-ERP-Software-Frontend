@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5"/>
+      <stop offset="100%" stop-color="#3730a3"/>
+    </linearGradient>
+    <linearGradient id="boxGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#e0e7ff"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  
+  <!-- Background with slight rounded corners for modern square icon -->
+  <rect width="512" height="512" rx="96" fill="url(#bgGrad)"/>
+  
+  <!-- Stock & Inventory Box Geometry -->
+  <g filter="url(#glow)">
+    <!-- Top Face -->
+    <polygon points="256,128 384,192 256,256 128,192" fill="#ffffff" opacity="0.95"/>
+    <!-- Left Face -->
+    <polygon points="128,192 256,256 256,384 128,320" fill="#c7d2fe"/>
+    <!-- Right Face -->
+    <polygon points="256,256 384,192 384,320 256,384" fill="#a5b4fc"/>
+    <!-- Dynamic Pilot Wing / Arrow accent -->
+    <path d="M 236 178 L 276 178 L 296 218 L 256 238 Z" fill="#4f46e5" opacity="0.9"/>
+  </g>
+</svg>

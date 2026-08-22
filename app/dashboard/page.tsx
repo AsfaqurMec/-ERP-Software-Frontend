@@ -1,0 +1,1 @@
+import { Shell } from '../../components/shell'; import { DashboardView } from '../../components/dashboard'; import { AuthGuard } from '../../components/auth-guard'; export default function Dashboard(){return <AuthGuard><Shell><DashboardView/></Shell></AuthGuard>}

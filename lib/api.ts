@@ -1,6 +1,6 @@
 export { formatCurrency, formatNumber, formatDate, formatDateTime, formatPercentage } from './format';
 
-const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+const base = process.env.NEXT_PUBLIC_API_URL;
 
 export function extractItems<T = any>(res: any): T[] {
   if (!res) return [];

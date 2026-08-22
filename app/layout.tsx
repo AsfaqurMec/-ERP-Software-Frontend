@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Providers } from '../components/providers';
 
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://hamim-group-erp.vercel.app';
+
 export const viewport: Viewport = {
   themeColor: '#4f46e5',
   width: 'device-width',
@@ -10,6 +12,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL(appUrl),
   title: {
     default: 'StockPilot — Enterprise Inventory, Sales & POS Management System',
     template: '%s | StockPilot',
@@ -28,22 +31,35 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'StockPilot Team' }],
   icons: {
-    icon: [{ url: '/icon.svg', type: 'image/svg+xml' }],
-    shortcut: '/icon.svg',
-    apple: '/icon.svg',
+    icon: [
+      { url: '/icon', type: 'image/png', sizes: '64x64' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: '/icon',
+    apple: '/apple-icon',
   },
   openGraph: {
     title: 'StockPilot — Smart Inventory & Sales Management ERP',
     description:
       'Real-time inventory control, POS invoicing, purchase automation, customer & supplier due ledgers, and multi-lingual support.',
-    type: 'website',
+    url: appUrl,
     siteName: 'StockPilot',
+    images: [
+      {
+        url: '/opengraph-image',
+        width: 1200,
+        height: 630,
+        alt: 'StockPilot — Smart Inventory & Sales Management ERP',
+      },
+    ],
+    type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'StockPilot — Smart Inventory & Sales Management ERP',
     description:
       'Real-time inventory control, POS invoicing, purchase automation, customer & supplier due ledgers, and multi-lingual support.',
+    images: ['/opengraph-image'],
   },
 };
 
@@ -51,8 +67,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/icon.svg" />
+        <link rel="icon" href="/icon" sizes="64x64" type="image/png" />
+        <link rel="apple-touch-icon" href="/apple-icon" sizes="180x180" type="image/png" />
       </head>
       <body>
         <Providers>{children}</Providers>

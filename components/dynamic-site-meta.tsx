@@ -14,28 +14,18 @@ export function DynamicSiteMeta() {
     const bName = settings.business_name?.trim();
     const bLogo = settings.business_logo?.trim();
 
-    // 1. Dynamic Favicon from Business Logo (Cloudinary / Custom URL)
+    // 1. Dynamic Favicon: safely mutate href on existing links without calling remove() or removeChild()
     if (bLogo) {
-      const existing = document.querySelectorAll("link[rel*='icon'], link[rel='apple-touch-icon']");
-      existing.forEach((node) => node.remove());
-
-      const isSvg = bLogo.toLowerCase().includes('.svg');
-
-      const link = document.createElement('link');
-      link.rel = 'icon';
-      link.type = isSvg ? 'image/svg+xml' : 'image/png';
-      link.href = bLogo;
-      document.head.appendChild(link);
-
-      const shortcut = document.createElement('link');
-      shortcut.rel = 'shortcut icon';
-      shortcut.href = bLogo;
-      document.head.appendChild(shortcut);
-
-      const apple = document.createElement('link');
-      apple.rel = 'apple-touch-icon';
-      apple.href = bLogo;
-      document.head.appendChild(apple);
+      const iconLinks = document.querySelectorAll<HTMLLinkElement>(
+        "link[rel='icon'], link[rel='shortcut icon'], link[rel='apple-touch-icon']"
+      );
+      if (iconLinks.length > 0) {
+        iconLinks.forEach((link) => {
+          if (link.href !== bLogo) {
+            link.href = bLogo;
+          }
+        });
+      }
     }
 
     // 2. Dynamic Title from Business Name

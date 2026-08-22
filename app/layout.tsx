@@ -80,17 +80,10 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const brand = await getServerBrandSettings();
-  const logoUrl = brand.business_logo || 'https://res.cloudinary.com/dzmglrehf/image/upload/v1787417330/stockpilot/branding/ux8pimioeqtb1ofb01jw.png';
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="icon" href={logoUrl} type="image/png" />
-        <link rel="shortcut icon" href={logoUrl} type="image/png" />
-        <link rel="apple-touch-icon" href={logoUrl} />
-      </head>
+      <head />
       <body>
         <Providers>{children}</Providers>
       </body>

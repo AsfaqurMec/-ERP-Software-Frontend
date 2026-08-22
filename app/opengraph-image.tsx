@@ -2,8 +2,8 @@ import { ImageResponse } from 'next/og';
 import { getServerBrandSettings } from '../lib/server-settings';
 
 export const runtime = 'nodejs';
-export const revalidate = 30;
-export const alt = 'Enterprise Inventory & Sales Management ERP';
+export const revalidate = 0;
+export const alt = 'HAMIM GROUP — Enterprise Management ERP';
 export const size = {
   width: 1200,
   height: 630,
@@ -12,8 +12,23 @@ export const contentType = 'image/png';
 
 export default async function Image() {
   const brand = await getServerBrandSettings();
-  const businessName = brand.business_name || 'StockPilot';
+  const businessName = brand.business_name || 'HAMIM GROUP';
   const logoUrl = brand.business_logo;
+
+  let logoBase64: string | null = null;
+  if (logoUrl) {
+    try {
+      const res = await fetch(logoUrl, { cache: 'no-store' });
+      if (res.ok) {
+        const arrayBuf = await res.arrayBuffer();
+        const base64 = Buffer.from(arrayBuf).toString('base64');
+        const mime = res.headers.get('content-type') || 'image/png';
+        logoBase64 = `data:${mime};base64,${base64}`;
+      }
+    } catch {
+      // ignore
+    }
+  }
 
   return new ImageResponse(
     (
@@ -32,7 +47,7 @@ export default async function Image() {
           position: 'relative',
         }}
       >
-        {/* Ambient background glow */}
+        {/* Glow */}
         <div
           style={{
             position: 'absolute',
@@ -45,7 +60,7 @@ export default async function Image() {
           }}
         />
 
-        {/* Brand Header with Live Logo & Business Name */}
+        {/* Logo and Name */}
         <div
           style={{
             display: 'flex',
@@ -54,26 +69,26 @@ export default async function Image() {
             marginBottom: '28px',
           }}
         >
-          {logoUrl ? (
+          {logoBase64 ? (
             <img
-              src={logoUrl}
+              src={logoBase64}
               alt={businessName}
-              width={100}
-              height={100}
+              width={110}
+              height={110}
               style={{
                 objectFit: 'contain',
-                borderRadius: '18px',
+                borderRadius: '20px',
                 background: '#ffffff',
                 padding: '8px',
-                boxShadow: '0 16px 36px rgba(0, 0, 0, 0.35)',
-                border: '2px solid rgba(255, 255, 255, 0.2)',
+                boxShadow: '0 16px 36px rgba(0, 0, 0, 0.4)',
+                border: '2px solid rgba(255, 255, 255, 0.25)',
               }}
             />
           ) : (
             <div
               style={{
-                width: '96px',
-                height: '96px',
+                width: '100px',
+                height: '100px',
                 borderRadius: '24px',
                 background: 'linear-gradient(135deg, #6366f1 0%, #4338ca 100%)',
                 display: 'flex',
@@ -98,7 +113,7 @@ export default async function Image() {
           >
             <span
               style={{
-                fontSize: '54px',
+                fontSize: '56px',
                 fontWeight: 900,
                 color: '#ffffff',
                 letterSpacing: '-1.5px',
@@ -114,7 +129,7 @@ export default async function Image() {
                 color: '#818cf8',
                 letterSpacing: '2px',
                 textTransform: 'uppercase',
-                marginTop: '4px',
+                marginTop: '6px',
               }}
             >
               Enterprise Management ERP
@@ -122,7 +137,7 @@ export default async function Image() {
           </div>
         </div>
 
-        {/* Dynamic Tagline */}
+        {/* Tagline */}
         <div
           style={{
             fontSize: '28px',
@@ -134,7 +149,7 @@ export default async function Image() {
             marginBottom: '36px',
           }}
         >
-          Smart Inventory Control · POS Sales Invoicing · Customer &amp; Supplier Dues
+          Smart Inventory Control · POS Invoicing · Customer &amp; Supplier Dues
         </div>
 
         {/* Feature Highlights */}
@@ -144,7 +159,7 @@ export default async function Image() {
             gap: '14px',
           }}
         >
-          {['Real-time Stock Ledger', 'Customer Due Hub', 'Supplier Payables', 'Multi-lingual Support'].map(
+          {['Live Stock Position', 'Customer Due Ledger', 'Supplier Payables', 'Multi-Lingual (বাংলা/EN)'].map(
             (badge) => (
               <div
                 key={badge}

@@ -3,6 +3,9 @@ import './globals.css';
 import { Providers } from '../components/providers';
 import { getServerBrandSettings } from '../lib/server-settings';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://hamim-group-erp.vercel.app';
 
 export const viewport: Viewport = {
@@ -14,43 +17,11 @@ export const viewport: Viewport = {
 
 export async function generateMetadata(): Promise<Metadata> {
   const brand = await getServerBrandSettings();
-  const businessName = brand.business_name || 'StockPilot';
-  const logoUrl = brand.business_logo;
+  const businessName = brand.business_name || 'HAMIM GROUP';
+  const logoUrl = brand.business_logo || 'https://res.cloudinary.com/dzmglrehf/image/upload/v1787417330/stockpilot/branding/ux8pimioeqtb1ofb01jw.png';
 
-  const title = `${businessName} — Enterprise Inventory, Sales & POS Management System`;
-  const description = `${businessName} management portal. Real-time inventory control, POS invoicing, purchase automation, customer & supplier due ledgers, and multi-lingual operations.`;
-
-  const ogImages = logoUrl
-    ? [
-        {
-          url: logoUrl,
-          alt: `${businessName} Logo`,
-        },
-        {
-          url: '/opengraph-image',
-          width: 1200,
-          height: 630,
-          alt: `${businessName} — Enterprise ERP`,
-        },
-      ]
-    : [
-        {
-          url: '/opengraph-image',
-          width: 1200,
-          height: 630,
-          alt: `${businessName} — Enterprise ERP`,
-        },
-      ];
-
-  const iconList = logoUrl
-    ? [
-        { url: logoUrl },
-        { url: '/icon', type: 'image/png', sizes: '64x64' },
-      ]
-    : [
-        { url: '/icon', type: 'image/png', sizes: '64x64' },
-        { url: '/icon.svg', type: 'image/svg+xml' },
-      ];
+  const title = `${businessName} — Enterprise Operations & Sales ERP`;
+  const description = `${businessName} management portal. Real-time inventory control, POS invoicing, purchase automation, and customer & supplier due ledgers.`;
 
   return {
     metadataBase: new URL(appUrl),
@@ -61,56 +32,64 @@ export async function generateMetadata(): Promise<Metadata> {
     description,
     keywords: [
       businessName,
+      'HAMIM GROUP',
       'Inventory Management',
       'Sales Invoicing',
       'POS Software',
       'Stock Control',
       'Customer Due Ledger',
       'Supplier Payable',
-      'Business ERP',
+      'ERP Bangladesh',
     ],
     authors: [{ name: businessName }],
     icons: {
-      icon: iconList,
-      shortcut: logoUrl || '/icon',
-      apple: logoUrl || '/apple-icon',
+      icon: [
+        { url: logoUrl, type: 'image/png' },
+        { url: '/icon', type: 'image/png', sizes: '64x64' },
+      ],
+      shortcut: logoUrl,
+      apple: logoUrl,
     },
     openGraph: {
       title,
       description,
       url: appUrl,
       siteName: businessName,
-      images: ogImages,
+      images: [
+        {
+          url: logoUrl,
+          width: 512,
+          height: 512,
+          alt: `${businessName} Logo`,
+        },
+        {
+          url: '/opengraph-image',
+          width: 1200,
+          height: 630,
+          alt: `${businessName} — Enterprise ERP`,
+        },
+      ],
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: [logoUrl || '/opengraph-image'],
+      images: [logoUrl, '/opengraph-image'],
     },
   };
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const brand = await getServerBrandSettings();
-  const logoUrl = brand.business_logo;
+  const logoUrl = brand.business_logo || 'https://res.cloudinary.com/dzmglrehf/image/upload/v1787417330/stockpilot/branding/ux8pimioeqtb1ofb01jw.png';
 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {logoUrl ? (
-          <>
-            <link rel="icon" href={logoUrl} />
-            <link rel="shortcut icon" href={logoUrl} />
-            <link rel="apple-touch-icon" href={logoUrl} />
-          </>
-        ) : (
-          <>
-            <link rel="icon" href="/icon" sizes="64x64" type="image/png" />
-            <link rel="apple-touch-icon" href="/apple-icon" sizes="180x180" type="image/png" />
-          </>
-        )}
+        <link rel="icon" href={logoUrl} type="image/png" />
+        <link rel="shortcut icon" href={logoUrl} type="image/png" />
+        <link rel="apple-touch-icon" href={logoUrl} />
       </head>
       <body>
         <Providers>{children}</Providers>

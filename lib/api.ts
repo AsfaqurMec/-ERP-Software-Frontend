@@ -1,6 +1,15 @@
-export { formatCurrency, formatNumber, formatDate, formatDateTime, formatPercentage } from './format';
+import { formatCurrency, formatNumber, formatDate, formatDateTime, formatPercentage } from './format';
 
-const base = process.env.NEXT_PUBLIC_API_URL;
+export { formatCurrency, formatNumber, formatDate, formatDateTime, formatPercentage };
+
+export function getApiBaseUrl(): string {
+  let url = process.env.NEXT_PUBLIC_API_URL?.trim() || 'https://erp-software-backend-ubdi.onrender.com';
+  url = url.replace(/\/+$/, '');
+  if (!url.endsWith('/api')) {
+    url = `${url}/api`;
+  }
+  return url;
+}
 
 export function extractItems<T = any>(res: any): T[] {
   if (!res) return [];
@@ -11,11 +20,13 @@ export function extractItems<T = any>(res: any): T[] {
 }
 
 export async function api<T = any>(path: string, options: RequestInit = {}): Promise<T> {
+  const base = getApiBaseUrl();
   const token = typeof window === 'undefined' ? null : localStorage.getItem('token');
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
   
   let response: Response;
   try {
-    response = await fetch(`${base}${path}`, {
+    response = await fetch(`${base}${cleanPath}`, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
@@ -62,10 +73,4 @@ export async function api<T = any>(path: string, options: RequestInit = {}): Pro
   return data as T;
 }
 
-export const money = (value: number | string) => {
-  return new Intl.NumberFormat('en-BD', {
-    style: 'currency',
-    currency: 'BDT',
-    maximumFractionDigits: 0,
-  }).format(Number(value || 0));
-};
+export const money = (v: any) => formatCurrency(Number(v) || 0);

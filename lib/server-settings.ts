@@ -9,32 +9,41 @@ export interface ServerBrandSettings {
 }
 
 export async function getServerBrandSettings(): Promise<ServerBrandSettings> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://erp-software-backend-ubdi.onrender.com';
+  let apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim() || 'https://erp-software-backend-ubdi.onrender.com';
+  apiUrl = apiUrl.replace(/\/+$/, '');
+  if (!apiUrl.endsWith('/api')) {
+    apiUrl = `${apiUrl}/api`;
+  }
   
   try {
-    const res = await fetch(`${apiUrl}/api/settings/public`, {
-      next: { revalidate: 30 },
+    const res = await fetch(`${apiUrl}/settings/public`, {
+      cache: 'no-store',
+      headers: {
+        'Accept': 'application/json',
+      },
     });
     if (res.ok) {
       const json = await res.json();
       const data = json.data || json;
-      return {
-        business_name: data.business_name || 'StockPilot',
-        business_logo: data.business_logo || '',
-        business_phone: data.business_phone || '',
-        business_email: data.business_email || '',
-        business_address: data.business_address || '',
-        business_website: data.business_website || '',
-        currency_symbol: data.currency_symbol || '৳',
-      };
+      if (data && typeof data === 'object') {
+        return {
+          business_name: data.business_name || 'HAMIM GROUP',
+          business_logo: data.business_logo || 'https://res.cloudinary.com/dzmglrehf/image/upload/v1787417330/stockpilot/branding/ux8pimioeqtb1ofb01jw.png',
+          business_phone: data.business_phone || '',
+          business_email: data.business_email || '',
+          business_address: data.business_address || '',
+          business_website: data.business_website || '',
+          currency_symbol: data.currency_symbol || '৳',
+        };
+      }
     }
   } catch {
-    // Return default branding if backend is unreachable
+    // Fallback to configured settings
   }
 
   return {
-    business_name: 'StockPilot',
-    business_logo: '',
+    business_name: 'HAMIM GROUP',
+    business_logo: 'https://res.cloudinary.com/dzmglrehf/image/upload/v1787417330/stockpilot/branding/ux8pimioeqtb1ofb01jw.png',
     currency_symbol: '৳',
   };
 }

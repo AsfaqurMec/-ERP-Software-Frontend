@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og';
 import { getServerBrandSettings } from '../lib/server-settings';
 
 export const runtime = 'nodejs';
-export const revalidate = 30;
+export const revalidate = 0;
 export const size = {
   width: 64,
   height: 64,
@@ -11,10 +11,25 @@ export const contentType = 'image/png';
 
 export default async function Icon() {
   const brand = await getServerBrandSettings();
-  const businessName = brand.business_name || 'StockPilot';
+  const businessName = brand.business_name || 'HAMIM GROUP';
   const logoUrl = brand.business_logo;
 
+  let logoBase64: string | null = null;
   if (logoUrl) {
+    try {
+      const res = await fetch(logoUrl, { cache: 'no-store' });
+      if (res.ok) {
+        const arrayBuf = await res.arrayBuffer();
+        const base64 = Buffer.from(arrayBuf).toString('base64');
+        const mime = res.headers.get('content-type') || 'image/png';
+        logoBase64 = `data:${mime};base64,${base64}`;
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  if (logoBase64) {
     return new ImageResponse(
       (
         <div
@@ -26,14 +41,14 @@ export default async function Icon() {
             justifyContent: 'center',
             background: '#ffffff',
             borderRadius: '14px',
-            padding: '4px',
+            padding: '2px',
           }}
         >
           <img
-            src={logoUrl}
+            src={logoBase64}
             alt={businessName}
-            width={56}
-            height={56}
+            width={60}
+            height={60}
             style={{
               objectFit: 'contain',
               borderRadius: '10px',

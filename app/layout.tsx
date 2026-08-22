@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Providers } from '../components/providers';
+import { getServerBrandSettings } from '../lib/server-settings';
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://hamim-group-erp.vercel.app';
 
@@ -11,64 +12,105 @@ export const viewport: Viewport = {
   maximumScale: 1,
 };
 
-export const metadata: Metadata = {
-  metadataBase: new URL(appUrl),
-  title: {
-    default: 'StockPilot — Enterprise Inventory, Sales & POS Management System',
-    template: '%s | StockPilot',
-  },
-  description:
-    'All-in-one inventory management, sales invoicing, point-of-sale (POS), procurement, multi-lingual support, and comprehensive customer & supplier due ledgers for modern businesses.',
-  keywords: [
-    'Inventory Management',
-    'Sales Invoicing',
-    'POS Software',
-    'Stock Control',
-    'Customer Due Ledger',
-    'Supplier Payable',
-    'Business ERP',
-    'StockPilot',
-  ],
-  authors: [{ name: 'StockPilot Team' }],
-  icons: {
-    icon: [
-      { url: '/icon', type: 'image/png', sizes: '64x64' },
-      { url: '/icon.svg', type: 'image/svg+xml' },
-    ],
-    shortcut: '/icon',
-    apple: '/apple-icon',
-  },
-  openGraph: {
-    title: 'StockPilot — Smart Inventory & Sales Management ERP',
-    description:
-      'Real-time inventory control, POS invoicing, purchase automation, customer & supplier due ledgers, and multi-lingual support.',
-    url: appUrl,
-    siteName: 'StockPilot',
-    images: [
-      {
-        url: '/opengraph-image',
-        width: 1200,
-        height: 630,
-        alt: 'StockPilot — Smart Inventory & Sales Management ERP',
-      },
-    ],
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'StockPilot — Smart Inventory & Sales Management ERP',
-    description:
-      'Real-time inventory control, POS invoicing, purchase automation, customer & supplier due ledgers, and multi-lingual support.',
-    images: ['/opengraph-image'],
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const brand = await getServerBrandSettings();
+  const businessName = brand.business_name || 'StockPilot';
+  const logoUrl = brand.business_logo;
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const title = `${businessName} — Enterprise Inventory, Sales & POS Management System`;
+  const description = `${businessName} management portal. Real-time inventory control, POS invoicing, purchase automation, customer & supplier due ledgers, and multi-lingual operations.`;
+
+  const ogImages = logoUrl
+    ? [
+        {
+          url: logoUrl,
+          alt: `${businessName} Logo`,
+        },
+        {
+          url: '/opengraph-image',
+          width: 1200,
+          height: 630,
+          alt: `${businessName} — Enterprise ERP`,
+        },
+      ]
+    : [
+        {
+          url: '/opengraph-image',
+          width: 1200,
+          height: 630,
+          alt: `${businessName} — Enterprise ERP`,
+        },
+      ];
+
+  const iconList = logoUrl
+    ? [
+        { url: logoUrl },
+        { url: '/icon', type: 'image/png', sizes: '64x64' },
+      ]
+    : [
+        { url: '/icon', type: 'image/png', sizes: '64x64' },
+        { url: '/icon.svg', type: 'image/svg+xml' },
+      ];
+
+  return {
+    metadataBase: new URL(appUrl),
+    title: {
+      default: title,
+      template: `%s | ${businessName}`,
+    },
+    description,
+    keywords: [
+      businessName,
+      'Inventory Management',
+      'Sales Invoicing',
+      'POS Software',
+      'Stock Control',
+      'Customer Due Ledger',
+      'Supplier Payable',
+      'Business ERP',
+    ],
+    authors: [{ name: businessName }],
+    icons: {
+      icon: iconList,
+      shortcut: logoUrl || '/icon',
+      apple: logoUrl || '/apple-icon',
+    },
+    openGraph: {
+      title,
+      description,
+      url: appUrl,
+      siteName: businessName,
+      images: ogImages,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [logoUrl || '/opengraph-image'],
+    },
+  };
+}
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const brand = await getServerBrandSettings();
+  const logoUrl = brand.business_logo;
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/icon" sizes="64x64" type="image/png" />
-        <link rel="apple-touch-icon" href="/apple-icon" sizes="180x180" type="image/png" />
+        {logoUrl ? (
+          <>
+            <link rel="icon" href={logoUrl} />
+            <link rel="shortcut icon" href={logoUrl} />
+            <link rel="apple-touch-icon" href={logoUrl} />
+          </>
+        ) : (
+          <>
+            <link rel="icon" href="/icon" sizes="64x64" type="image/png" />
+            <link rel="apple-touch-icon" href="/apple-icon" sizes="180x180" type="image/png" />
+          </>
+        )}
       </head>
       <body>
         <Providers>{children}</Providers>

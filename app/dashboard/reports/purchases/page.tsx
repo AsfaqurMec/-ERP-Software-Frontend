@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../../components/auth-guard';
 import { Shell } from '../../../../components/shell';
 import { api } from '../../../../lib/api';
+import { useTranslation } from '../../../../provider';
 import {
   CurrencyDisplay,
   DataTable,
@@ -19,6 +20,7 @@ import {
 } from '../../../../components/ui';
 
 export default function PurchasesReportPage() {
+  const { t } = useTranslation();
   const [from, setFrom] = useState(
     new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10)
   );
@@ -34,12 +36,12 @@ export default function PurchasesReportPage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title="Procurement & Purchases Report"
-            description="Audit supplier orders, inward logistics volume and procurement expenditures."
+            title={t('reports.purchases_title')}
+            description={t('reports.purchases_desc')}
             breadcrumbs={[
-              { label: 'Dashboard', href: '/dashboard' },
-              { label: 'Reports', href: '/dashboard/reports' },
-              { label: 'Purchases' },
+              { label: t('common.dashboard'), href: '/dashboard' },
+              { label: t('reports.title'), href: '/dashboard/reports' },
+              { label: t('purchases.title') },
             ]}
             action={
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -49,7 +51,7 @@ export default function PurchasesReportPage() {
                   onChange={(e) => setFrom(e.target.value)}
                   style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}
                 />
-                <span style={{ color: '#94a3b8' }}>to</span>
+                <span style={{ color: '#94a3b8' }}>{t('reports.to_date')}</span>
                 <input
                   type="date"
                   value={to}
@@ -61,11 +63,23 @@ export default function PurchasesReportPage() {
           />
 
           {purchasesReportQuery.isLoading ? (
-            <LoadingSpinner label="Compiling procurement records…" />
+            <LoadingSpinner label={t('common.loading')} />
           ) : purchasesReportQuery.error ? (
             <ErrorState message={purchasesReportQuery.error.message} onRetry={() => purchasesReportQuery.refetch()} />
           ) : (
-            <DataTable columns={['Purchase #', 'Date', 'Supplier', 'Items Count', 'Grand Total', 'Paid Amount', 'Due Balance', 'Payment Status', 'Actions']}>
+            <DataTable
+              columns={[
+                t('purchases.purchase_number'),
+                t('common.date'),
+                t('purchases.supplier'),
+                t('products.units'),
+                t('purchases.grand_total'),
+                t('purchases.paid_amount'),
+                t('purchases.due_amount'),
+                t('purchases.payment_status'),
+                t('common.actions'),
+              ]}
+            >
               {purchasesReportQuery.data?.purchases?.length ? (
                 purchasesReportQuery.data.purchases.map((p: any) => (
                   <tr key={p.id}>
@@ -76,7 +90,7 @@ export default function PurchasesReportPage() {
                       <DateDisplay value={p.purchaseDate} />
                     </td>
                     <td>{p.supplier?.name || '—'}</td>
-                    <td>{p.items?.length || 0} items</td>
+                    <td>{p.items?.length || 0}</td>
                     <td>
                       <strong>
                         <CurrencyDisplay value={p.grandTotal} />
@@ -94,14 +108,14 @@ export default function PurchasesReportPage() {
                       <PaymentStatusBadge value={p.paymentStatus} />
                     </td>
                     <td>
-                      <Link href={`/dashboard/purchases/${p.id}`}>View Details</Link>
+                      <Link href={`/dashboard/purchases/${p.id}`}>{t('common.view_details')}</Link>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td colSpan={9}>
-                    <EmptyTableState message="No purchase records found in selected interval." />
+                    <EmptyTableState message={t('purchases.no_purchases_found')} />
                   </td>
                 </tr>
               )}

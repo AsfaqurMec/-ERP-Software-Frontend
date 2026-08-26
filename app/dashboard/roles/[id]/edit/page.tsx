@@ -6,8 +6,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../../../../lib/api';
 import { PageContainer, PageHeader } from '../../../../../components/ui';
 import { ShieldCheck, AlertCircle } from 'lucide-react';
+import { useTranslation } from '../../../../../provider';
 
 export default function EditRolePage() {
+  const { t } = useTranslation();
   const params = useParams();
   const id = params?.id as string;
   const router = useRouter();
@@ -103,7 +105,7 @@ export default function EditRolePage() {
     return (
       <PageContainer>
         <div className="skeleton" style={{ height: 300 }}>
-          Loading role matrix...
+          {t('common.loading')}
         </div>
       </PageContainer>
     );
@@ -114,12 +116,12 @@ export default function EditRolePage() {
   return (
     <PageContainer>
       <PageHeader
-        title={`Edit Role: ${roleData?.name}`}
-        description="Update role privileges and adjust module access rules."
+        title={`${t('roles.title')}: ${roleData?.name}`}
+        description={t('roles.security_roles_desc')}
         breadcrumbs={[
-          { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Roles & Permissions', href: '/dashboard/roles' },
-          { label: 'Edit Role' },
+          { label: t('common.dashboard'), href: '/dashboard' },
+          { label: t('roles.title'), href: '/dashboard/roles' },
+          { label: roleData?.name || t('roles.title') },
         ]}
       />
 
@@ -145,11 +147,11 @@ export default function EditRolePage() {
 
       <form onSubmit={handleSubmit} className="record-form">
         <div className="card" style={{ padding: 24 }}>
-          <h3 style={{ margin: '0 0 16px', fontSize: '1.05rem', fontWeight: 700 }}>Role Identity</h3>
+          <h3 style={{ margin: '0 0 16px', fontSize: '1.05rem', fontWeight: 700 }}>{t('roles.title')}</h3>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 16 }}>
             <div className="form-field">
-              <label>Role Name *</label>
+              <label>{t('roles.role_name')} *</label>
               <input
                 type="text"
                 value={form.name}
@@ -161,12 +163,12 @@ export default function EditRolePage() {
             </div>
 
             <div className="form-field">
-              <label>Description</label>
+              <label>{t('common.description')}</label>
               <input
                 type="text"
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
-                placeholder="Brief explanation of duties and access level"
+                placeholder={t('common.description')}
               />
             </div>
           </div>
@@ -176,9 +178,9 @@ export default function EditRolePage() {
         <div className="card" style={{ padding: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
             <div>
-              <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700 }}>Permissions Matrix</h3>
+              <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700 }}>{t('roles.permissions')}</h3>
               <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: '#64748b' }}>
-                Selected: <strong>{form.permissions.length}</strong> permission(s)
+                {t('roles.permissions')}: <strong>{form.permissions.length}</strong>
               </p>
             </div>
 
@@ -189,7 +191,7 @@ export default function EditRolePage() {
                 className="ghost"
                 style={{ padding: '6px 12px', fontSize: '0.78rem' }}
               >
-                Select All
+                {t('common.all')}
               </button>
               <button
                 type="button"
@@ -197,7 +199,7 @@ export default function EditRolePage() {
                 className="ghost"
                 style={{ padding: '6px 12px', fontSize: '0.78rem' }}
               >
-                Clear All
+                {t('common.reset')}
               </button>
             </div>
           </div>
@@ -240,7 +242,7 @@ export default function EditRolePage() {
                         fontWeight: 600,
                       }}
                     >
-                      {allChecked ? 'Deselect group' : 'Select group'}
+                      {allChecked ? 'Deselect' : 'Select'}
                     </button>
                   </div>
 
@@ -279,7 +281,7 @@ export default function EditRolePage() {
 
         <div className="form-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
           <button type="button" onClick={() => router.push('/dashboard/roles')} className="ghost">
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             type="submit"
@@ -287,7 +289,7 @@ export default function EditRolePage() {
             disabled={updateMutation.isPending}
             style={{ padding: '10px 24px' }}
           >
-            {updateMutation.isPending ? 'Saving...' : 'Update Matrix'}
+            {updateMutation.isPending ? t('common.saving') : t('common.save')}
           </button>
         </div>
       </form>

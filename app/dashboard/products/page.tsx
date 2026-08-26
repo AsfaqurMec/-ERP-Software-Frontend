@@ -7,6 +7,7 @@ import { AuthGuard } from '../../../components/auth-guard';
 import { Shell } from '../../../components/shell';
 import { ExportMenu } from '../../../components/export-menu';
 import { api, extractItems } from '../../../lib/api';
+import { useTranslation } from '../../../provider';
 import {
   CurrencyDisplay,
   DataTable,
@@ -36,6 +37,7 @@ interface Product {
 }
 
 export default function ProductsPage() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [search, setSearch] = useState('');
@@ -73,26 +75,26 @@ export default function ProductsPage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title="Products"
-            description="Manage catalog, pricing, inventory thresholds and supplier associations."
-            breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Products' }]}
+            title={t('products.title')}
+            description={t('products.description')}
+            breadcrumbs={[{ label: t('common.dashboard'), href: '/dashboard' }, { label: t('products.title') }]}
             action={
               <div style={{ display: 'flex', gap: 8 }}>
                 <ExportMenu
                   filename="StockPilot_Products"
                   columns={[
-                    { header: 'SKU', key: 'sku' },
-                    { header: 'Product Name', key: 'name' },
-                    { header: 'Category', key: 'category.name', formatter: (r) => r.category?.name || '—' },
-                    { header: 'Purchase Price', key: 'purchasePrice' },
-                    { header: 'Selling Price', key: 'sellingPrice' },
-                    { header: 'Stock Units', key: 'stock' },
-                    { header: 'Status', key: 'status' },
+                    { header: t('products.sku'), key: 'sku' },
+                    { header: t('products.name'), key: 'name' },
+                    { header: t('products.category'), key: 'category.name', formatter: (r) => r.category?.name || '—' },
+                    { header: t('products.purchase_price'), key: 'purchasePrice' },
+                    { header: t('products.selling_price'), key: 'sellingPrice' },
+                    { header: t('products.stock_units'), key: 'stock' },
+                    { header: t('common.status'), key: 'status' },
                   ]}
                   data={productsQuery.data?.data || []}
                 />
                 <Link className="primary-button" href="/dashboard/products/create">
-                  + Add Product
+                  {t('products.add_product')}
                 </Link>
               </div>
             }
@@ -105,11 +107,11 @@ export default function ProductsPage() {
                 setSearch(v);
                 setPage(1);
               }}
-              placeholder="Search product name, SKU, barcode..."
+              placeholder={t('products.search_placeholder')}
             />
 
             <FilterDropdown
-              label="All Categories"
+              label={t('products.all_categories')}
               value={categoryId}
               onChange={(v) => {
                 setCategoryId(v);
@@ -119,18 +121,18 @@ export default function ProductsPage() {
             />
 
             <FilterDropdown
-              label="Stock Status"
+              label={t('products.all_stock_levels')}
               value={stockStatus}
               onChange={(v) => {
                 setStockStatus(v);
                 setPage(1);
               }}
               options={[
-                { label: 'All Stock Levels', value: 'all' },
-                { label: 'In Stock (> 0)', value: 'in_stock' },
-                { label: 'Low Stock Threshold', value: 'low_stock' },
-                { label: 'Out of Stock (0)', value: 'out_of_stock' },
-                { label: 'Overstocked', value: 'overstocked' },
+                { label: t('products.all_stock_levels'), value: 'all' },
+                { label: t('products.in_stock_filter'), value: 'in_stock' },
+                { label: t('products.low_stock_filter'), value: 'low_stock' },
+                { label: t('products.out_of_stock_filter'), value: 'out_of_stock' },
+                { label: t('products.overstocked_filter'), value: 'overstocked' },
               ]}
             />
 
@@ -143,7 +145,7 @@ export default function ProductsPage() {
             />
 
             <select
-              aria-label="Sort by"
+              aria-label={t('common.filter')}
               value={`${sortBy}-${sortOrder}`}
               onChange={(e) => {
                 const [sb, so] = e.target.value.split('-');
@@ -152,32 +154,32 @@ export default function ProductsPage() {
                 setPage(1);
               }}
             >
-              <option value="createdAt-desc">Newest First</option>
-              <option value="name-asc">Name (A-Z)</option>
-              <option value="sellingPrice-desc">Selling Price (High-Low)</option>
-              <option value="sellingPrice-asc">Selling Price (Low-High)</option>
-              <option value="stock-desc">Stock (High-Low)</option>
-              <option value="stock-asc">Stock (Low-High)</option>
+              <option value="createdAt-desc">{t('common.newest_first')}</option>
+              <option value="name-asc">{t('common.name_az')}</option>
+              <option value="sellingPrice-desc">{t('common.price_high_low')}</option>
+              <option value="sellingPrice-asc">{t('common.price_low_high')}</option>
+              <option value="stock-desc">{t('common.stock_high_low')}</option>
+              <option value="stock-asc">{t('common.stock_low_high')}</option>
             </select>
           </DataTableToolbar>
 
           {productsQuery.isLoading ? (
-            <LoadingSpinner label="Loading products…" />
+            <LoadingSpinner label={t('common.loading')} />
           ) : productsQuery.error ? (
             <div className="error">{productsQuery.error.message}</div>
           ) : (
             <>
               <DataTable
                 columns={[
-                  'Product',
-                  'SKU',
-                  'Category',
-                  'Purchase Price',
-                  'Selling Price',
-                  'Stock',
-                  'Stock Value',
-                  'Status',
-                  'Actions',
+                  t('products.name'),
+                  t('products.sku'),
+                  t('products.category'),
+                  t('products.purchase_price'),
+                  t('products.selling_price'),
+                  t('products.stock_units'),
+                  t('products.stock_value'),
+                  t('common.status'),
+                  t('common.actions'),
                 ]}
               >
                 {productsQuery.data?.data.length ? (
@@ -217,8 +219,8 @@ export default function ProductsPage() {
                           <StatusBadge value={p.status} />
                         </td>
                         <td>
-                          <Link href={`/dashboard/products/${p.id}`}>View</Link> ·{' '}
-                          <Link href={`/dashboard/products/${p.id}/edit`}>Edit</Link>
+                          <Link href={`/dashboard/products/${p.id}`}>{t('common.view')}</Link> ·{' '}
+                          <Link href={`/dashboard/products/${p.id}/edit`}>{t('common.edit')}</Link>
                         </td>
                       </tr>
                     );
@@ -226,7 +228,7 @@ export default function ProductsPage() {
                 ) : (
                   <tr>
                     <td colSpan={9}>
-                      <EmptyTableState message="No products found matching the selected filters." />
+                      <EmptyTableState message={t('products.no_products_found')} />
                     </td>
                   </tr>
                 )}

@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../../components/auth-guard';
 import { Shell } from '../../../../components/shell';
 import { api } from '../../../../lib/api';
+import { useTranslation } from '../../../../provider';
 import {
   CurrencyDisplay,
   DataTable,
@@ -19,6 +20,7 @@ import {
 } from '../../../../components/ui';
 
 export default function SalesReportPage() {
+  const { t } = useTranslation();
   const [from, setFrom] = useState(
     new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10)
   );
@@ -34,12 +36,12 @@ export default function SalesReportPage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title="Sales & Revenue Report"
-            description="Audit confirmed customer sales orders, product demand and revenue totals for any date range."
+            title={t('reports.sales_title')}
+            description={t('reports.sales_desc')}
             breadcrumbs={[
-              { label: 'Dashboard', href: '/dashboard' },
-              { label: 'Reports', href: '/dashboard/reports' },
-              { label: 'Sales' },
+              { label: t('common.dashboard'), href: '/dashboard' },
+              { label: t('reports.title'), href: '/dashboard/reports' },
+              { label: t('sales.title') },
             ]}
             action={
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -49,7 +51,7 @@ export default function SalesReportPage() {
                   onChange={(e) => setFrom(e.target.value)}
                   style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}
                 />
-                <span style={{ color: '#94a3b8' }}>to</span>
+                <span style={{ color: '#94a3b8' }}>{t('reports.to_date')}</span>
                 <input
                   type="date"
                   value={to}
@@ -61,11 +63,23 @@ export default function SalesReportPage() {
           />
 
           {salesReportQuery.isLoading ? (
-            <LoadingSpinner label="Compiling sales ledger report…" />
+            <LoadingSpinner label={t('common.loading')} />
           ) : salesReportQuery.error ? (
             <ErrorState message={salesReportQuery.error.message} onRetry={() => salesReportQuery.refetch()} />
           ) : (
-            <DataTable columns={['Invoice #', 'Date', 'Customer', 'Items Count', 'Grand Total', 'Paid Amount', 'Due Balance', 'Payment Status', 'Actions']}>
+            <DataTable
+              columns={[
+                t('sales.invoice_number'),
+                t('common.date'),
+                t('sales.customer'),
+                t('products.units'),
+                t('sales.grand_total'),
+                t('sales.paid_amount'),
+                t('sales.due_amount'),
+                t('sales.payment_status'),
+                t('common.actions'),
+              ]}
+            >
               {salesReportQuery.data?.sales?.length ? (
                 salesReportQuery.data.sales.map((s: any) => (
                   <tr key={s.id}>
@@ -75,8 +89,8 @@ export default function SalesReportPage() {
                     <td>
                       <DateDisplay value={s.saleDate} />
                     </td>
-                    <td>{s.customer ? s.customer.name : 'Walk-in Customer'}</td>
-                    <td>{s.items?.length || 0} items</td>
+                    <td>{s.customer ? s.customer.name : t('common.walk_in_customer')}</td>
+                    <td>{s.items?.length || 0}</td>
                     <td>
                       <strong>
                         <CurrencyDisplay value={s.grandTotal} />
@@ -94,14 +108,14 @@ export default function SalesReportPage() {
                       <PaymentStatusBadge value={s.paymentStatus} />
                     </td>
                     <td>
-                      <Link href={`/dashboard/invoices/${s.id}`}>View Invoice</Link>
+                      <Link href={`/dashboard/sales/${s.id}`}>{t('common.view')}</Link>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td colSpan={9}>
-                    <EmptyTableState message="No sales records found in selected date interval." />
+                    <EmptyTableState message={t('sales.no_sales_found')} />
                   </td>
                 </tr>
               )}

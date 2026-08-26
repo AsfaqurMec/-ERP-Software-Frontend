@@ -34,8 +34,10 @@ import { AuthGuard } from '../../../components/auth-guard';
 import { Shell } from '../../../components/shell';
 import { PageContainer, PageHeader } from '../../../components/ui';
 import { api } from '../../../lib/api';
+import { useTranslation } from '../../../provider';
 
 export default function SettingsPage() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<'BUSINESS' | 'INVOICE' | 'INVENTORY' | 'PAYMENT' | 'SECURITY'>('BUSINESS');
@@ -171,11 +173,11 @@ export default function SettingsPage() {
   }
 
   const tabs = [
-    { id: 'BUSINESS', label: 'Business Profile & Logo', icon: Building2, desc: 'Brand identity & contact information' },
-    { id: 'INVOICE', label: 'Invoices & Receipts', icon: FileText, desc: 'Numbering formats, terms & disclosures' },
-    { id: 'INVENTORY', label: 'Inventory Rules', icon: Package, desc: 'Stock policies & alert thresholds' },
-    { id: 'PAYMENT', label: 'Payment Methods', icon: CreditCard, desc: 'Enabled payment channels & gateways' },
-    { id: 'SECURITY', label: 'Account & Security', icon: Lock, desc: 'Admin password & credentials' },
+    { id: 'BUSINESS', label: t('settings.business_profile'), icon: Building2, desc: t('settings.business_profile_desc') },
+    { id: 'INVOICE', label: t('settings.invoice_settings'), icon: FileText, desc: t('settings.invoice_settings_desc') },
+    { id: 'INVENTORY', label: t('settings.inventory_settings'), icon: Package, desc: t('settings.inventory_settings_desc') },
+    { id: 'PAYMENT', label: t('settings.payment_settings'), icon: CreditCard, desc: t('settings.payment_settings_desc') },
+    { id: 'SECURITY', label: t('settings.security_settings'), icon: Lock, desc: t('settings.security_settings_desc') },
   ] as const;
 
   const currentTabInfo = tabs.find((t) => t.id === activeTab)!;
@@ -185,9 +187,9 @@ export default function SettingsPage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title="System Settings"
-            description="Configure enterprise brand identity, custom logo, invoice rules, inventory controls, and security policies"
-            breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Settings' }]}
+            title={t('settings.title')}
+            description={t('settings.description')}
+            breadcrumbs={[{ label: t('common.dashboard'), href: '/dashboard' }, { label: t('settings.title') }]}
           />
 
           {savedSuccess && (
@@ -1049,7 +1051,7 @@ export default function SettingsPage() {
                           }}
                         >
                           <KeyRound size={16} />
-                          <span>{passwordMutation.isPending ? 'Updating...' : 'Update Password'}</span>
+                          <span>{passwordMutation.isPending ? t('common.saving') : t('settings.admin_password')}</span>
                         </button>
                       </div>
                     </div>
@@ -1087,7 +1089,7 @@ export default function SettingsPage() {
                         }}
                       >
                         <Save size={16} />
-                        <span>{updateMutation.isPending ? 'Saving Configuration...' : 'Save Changes'}</span>
+                        <span>{updateMutation.isPending ? t('common.saving') : t('common.save')}</span>
                       </button>
                     </div>
                   )}

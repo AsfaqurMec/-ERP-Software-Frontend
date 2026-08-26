@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../../components/auth-guard';
 import { Shell } from '../../../../components/shell';
 import { api } from '../../../../lib/api';
+import { useTranslation } from '../../../../provider';
 import {
   CurrencyDisplay,
   LoadingSpinner,
@@ -19,6 +20,7 @@ import { AppAreaChart } from '../../../../components/charts';
 import { ShoppingBag, Package, TrendingUp, Coins, Users, Receipt } from 'lucide-react';
 
 export default function MonthlyReportPage() {
+  const { t } = useTranslation();
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
@@ -48,12 +50,12 @@ export default function MonthlyReportPage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title="Monthly Statement & Trends"
-            description={`Financial performance and daily revenue trajectories for ${monthNames[month - 1]} ${year}.`}
+            title={t('reports.monthly_title')}
+            description={`${t('reports.monthly_desc')} (${monthNames[month - 1]} ${year})`}
             breadcrumbs={[
-              { label: 'Dashboard', href: '/dashboard' },
-              { label: 'Reports', href: '/dashboard/reports' },
-              { label: 'Monthly' },
+              { label: t('common.dashboard'), href: '/dashboard' },
+              { label: t('reports.title'), href: '/dashboard/reports' },
+              { label: t('reports.monthly_title') },
             ]}
             action={
               <div style={{ display: 'flex', gap: 10 }}>
@@ -85,7 +87,7 @@ export default function MonthlyReportPage() {
           />
 
           {monthlyQuery.isLoading ? (
-            <LoadingSpinner label="Compiling monthly financial statements…" />
+            <LoadingSpinner label={t('common.loading')} />
           ) : monthlyQuery.error ? (
             <ErrorState message={monthlyQuery.error.message} onRetry={() => monthlyQuery.refetch()} />
           ) : (
@@ -93,44 +95,44 @@ export default function MonthlyReportPage() {
               {/* Core Metric Cards */}
               <StatCardGrid columns={6}>
                 <StatCard
-                  label="Monthly Revenue"
+                  label={t('reports.sales_revenue')}
                   value={<CurrencyDisplay value={monthlyQuery.data.sales.revenue} />}
-                  detail={`${monthlyQuery.data.sales.orders} orders`}
+                  detail={`${monthlyQuery.data.sales.orders} ${t('sales.orders')}`}
                   icon={<ShoppingBag color="#5068e6" size={18} />}
                   kind="blue"
                 />
                 <StatCard
-                  label="Monthly COGS"
+                  label={t('reports.cogs')}
                   value={<CurrencyDisplay value={monthlyQuery.data.sales.cogs} />}
-                  detail="Cost of goods sold"
+                  detail={t('reports.cogs_detail')}
                   icon={<Package color="#d28d2b" size={18} />}
                   kind="amber"
                 />
                 <StatCard
-                  label="Gross Profit"
+                  label={t('reports.gross_profit')}
                   value={<CurrencyDisplay value={monthlyQuery.data.profit.grossProfit} />}
-                  detail="Revenue minus COGS"
+                  detail={t('reports.gross_profit_detail')}
                   icon={<TrendingUp color="#28a476" size={18} />}
                   kind="green"
                 />
                 <StatCard
-                  label="Expenses"
+                  label={t('expenses.title')}
                   value={<CurrencyDisplay value={monthlyQuery.data.expenses.total} />}
-                  detail={`${monthlyQuery.data.expenses.count} expense entries`}
+                  detail={`${monthlyQuery.data.expenses.count}`}
                   icon={<Receipt color="#ef4444" size={18} />}
                   kind="rose"
                 />
                 <StatCard
-                  label="Net Profit"
+                  label={t('reports.net_profit')}
                   value={<CurrencyDisplay value={monthlyQuery.data.profit.netProfit} />}
-                  detail="Bottom-line income"
+                  detail={t('reports.net_profit_detail')}
                   icon={<Coins color="#28a476" size={18} />}
                   kind={Number(monthlyQuery.data.profit.netProfit) >= 0 ? 'green' : 'rose'}
                 />
                 <StatCard
-                  label="Active Customers"
+                  label={t('customers.title')}
                   value={monthlyQuery.data.sales.customers}
-                  detail={`${monthlyQuery.data.sales.itemsSold} items sold`}
+                  detail={`${monthlyQuery.data.sales.itemsSold} ${t('products.units')}`}
                   icon={<Users color="#5068e6" size={18} />}
                   kind="blue"
                 />
@@ -139,8 +141,8 @@ export default function MonthlyReportPage() {
               {/* Daily Trend Curve */}
               <div style={{ marginTop: 16 }}>
                 <ChartCard
-                  title={`Daily Revenue & Profit Progression (${monthNames[month - 1]} ${year})`}
-                  subtitle="Daily revenue points plotted over the selected month"
+                  title={`${t('dashboard.revenue_performance')} (${monthNames[month - 1]} ${year})`}
+                  subtitle={t('reports.period_summary_desc')}
                 >
                   <AppAreaChart
                     data={

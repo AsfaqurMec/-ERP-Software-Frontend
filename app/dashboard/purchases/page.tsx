@@ -7,6 +7,7 @@ import { AuthGuard } from '../../../components/auth-guard';
 import { Shell } from '../../../components/shell';
 import { ExportMenu } from '../../../components/export-menu';
 import { api } from '../../../lib/api';
+import { useTranslation } from '../../../provider';
 import {
   CurrencyDisplay,
   DataTable,
@@ -24,6 +25,7 @@ import {
 } from '../../../components/ui';
 
 export default function PurchasesPage() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [search, setSearch] = useState('');
@@ -48,27 +50,27 @@ export default function PurchasesPage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title="Purchases"
-            description="Manage supplier purchase orders, procurement bills, stock receipts and payment statuses."
-            breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Purchases' }]}
+            title={t('purchases.title')}
+            description={t('purchases.description')}
+            breadcrumbs={[{ label: t('common.dashboard'), href: '/dashboard' }, { label: t('purchases.title') }]}
             action={
               <div style={{ display: 'flex', gap: 8 }}>
                 <ExportMenu
                   filename="StockPilot_Purchase_Orders"
                   columns={[
-                    { header: 'PO Number', key: 'purchaseNumber' },
-                    { header: 'Supplier', key: 'supplier.name', formatter: (r) => r.supplier?.name || '—' },
-                    { header: 'Date', key: 'purchaseDate' },
-                    { header: 'Grand Total', key: 'grandTotal' },
-                    { header: 'Paid Amount', key: 'paidAmount' },
-                    { header: 'Due Amount', key: 'dueAmount' },
-                    { header: 'Doc Status', key: 'status' },
-                    { header: 'Payment Status', key: 'paymentStatus' },
+                    { header: t('purchases.purchase_number'), key: 'purchaseNumber' },
+                    { header: t('purchases.supplier'), key: 'supplier.name', formatter: (r) => r.supplier?.name || '—' },
+                    { header: t('common.date'), key: 'purchaseDate' },
+                    { header: t('purchases.grand_total'), key: 'grandTotal' },
+                    { header: t('purchases.paid_amount'), key: 'paidAmount' },
+                    { header: t('purchases.due_amount'), key: 'dueAmount' },
+                    { header: t('purchases.doc_status'), key: 'status' },
+                    { header: t('purchases.payment_status'), key: 'paymentStatus' },
                   ]}
                   data={purchasesQuery.data?.data || []}
                 />
                 <Link className="primary-button" href="/dashboard/purchases/create">
-                  + Create Purchase
+                  {t('purchases.create_purchase')}
                 </Link>
               </div>
             }
@@ -81,56 +83,56 @@ export default function PurchasesPage() {
                 setSearch(v);
                 setPage(1);
               }}
-              placeholder="Search purchase #, supplier, or invoice…"
+              placeholder={t('purchases.search_placeholder')}
             />
 
             <FilterDropdown
-              label="All Document Statuses"
+              label={`${t('common.all')} ${t('purchases.doc_status')}`}
               value={status}
               onChange={(v) => {
                 setStatus(v);
                 setPage(1);
               }}
               options={[
-                { label: 'Confirmed (Stock Updated)', value: 'CONFIRMED' },
-                { label: 'Draft', value: 'DRAFT' },
-                { label: 'Cancelled', value: 'CANCELLED' },
+                { label: t('status.confirmed'), value: 'CONFIRMED' },
+                { label: t('status.draft'), value: 'DRAFT' },
+                { label: t('status.cancelled'), value: 'CANCELLED' },
               ]}
             />
 
             <FilterDropdown
-              label="All Payment Statuses"
+              label={`${t('common.all')} ${t('purchases.payment_status')}`}
               value={paymentStatus}
               onChange={(v) => {
                 setPaymentStatus(v);
                 setPage(1);
               }}
               options={[
-                { label: 'Paid', value: 'PAID' },
-                { label: 'Partial Due', value: 'PARTIAL' },
-                { label: 'Unpaid', value: 'UNPAID' },
+                { label: t('status.paid'), value: 'PAID' },
+                { label: t('status.partial'), value: 'PARTIAL' },
+                { label: t('status.unpaid'), value: 'UNPAID' },
               ]}
             />
           </DataTableToolbar>
 
           {purchasesQuery.isLoading ? (
-            <LoadingSpinner label="Loading purchase orders…" />
+            <LoadingSpinner label={t('common.loading')} />
           ) : purchasesQuery.error ? (
             <div className="error">{purchasesQuery.error.message}</div>
           ) : (
             <>
               <DataTable
                 columns={[
-                  'Purchase #',
-                  'Supplier',
-                  'Invoice Ref',
-                  'Date',
-                  'Grand Total',
-                  'Paid Amount',
-                  'Due Amount',
-                  'Payment',
-                  'Status',
-                  'Actions',
+                  t('purchases.purchase_number'),
+                  t('purchases.supplier'),
+                  t('purchases.supplier_invoice_ref'),
+                  t('common.date'),
+                  t('purchases.grand_total'),
+                  t('purchases.paid_amount'),
+                  t('purchases.due_amount'),
+                  t('purchases.payment_status'),
+                  t('purchases.doc_status'),
+                  t('common.actions'),
                 ]}
               >
                 {purchasesQuery.data?.data.length ? (
@@ -164,14 +166,14 @@ export default function PurchasesPage() {
                         <StatusBadge value={p.status} />
                       </td>
                       <td>
-                        <Link href={`/dashboard/purchases/${p.id}`}>View Details</Link>
+                        <Link href={`/dashboard/purchases/${p.id}`}>{t('common.view_details')}</Link>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
                     <td colSpan={10}>
-                      <EmptyTableState message="No purchases found matching your criteria." />
+                      <EmptyTableState message={t('purchases.no_purchases_found')} />
                     </td>
                   </tr>
                 )}

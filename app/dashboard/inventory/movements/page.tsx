@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../../components/auth-guard';
 import { Shell } from '../../../../components/shell';
 import { api } from '../../../../lib/api';
+import { useTranslation } from '../../../../provider';
 import {
   CurrencyDisplay,
   DataTable,
@@ -21,6 +22,7 @@ import {
 } from '../../../../components/ui';
 
 export default function StockMovementsPage() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [movementType, setMovementType] = useState('');
@@ -41,56 +43,56 @@ export default function StockMovementsPage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title="Stock Movements"
-            description="Immutable audit trail of all inventory receipts, sales dispatches, returns and manual adjustments."
+            title={t('inventory.stock_movements')}
+            description={t('inventory.stock_movements_desc')}
             breadcrumbs={[
-              { label: 'Dashboard', href: '/dashboard' },
-              { label: 'Inventory', href: '/dashboard/inventory' },
-              { label: 'Movements' },
+              { label: t('common.dashboard'), href: '/dashboard' },
+              { label: t('inventory.stock_position'), href: '/dashboard/inventory' },
+              { label: t('inventory.stock_movements') },
             ]}
             action={
               <Link className="primary-button" href="/dashboard/inventory/adjustments">
-                + New Adjustment
+                {t('inventory.new_adjustment_btn')}
               </Link>
             }
           />
 
           <DataTableToolbar>
             <FilterDropdown
-              label="All Movement Types"
+              label={t('inventory.all_movement_types')}
               value={movementType}
               onChange={(v) => {
                 setMovementType(v);
                 setPage(1);
               }}
               options={[
-                { label: 'Purchases (IN)', value: 'PURCHASE' },
-                { label: 'Sales (OUT)', value: 'SALE' },
-                { label: 'Sales Return (IN)', value: 'SALES_RETURN' },
-                { label: 'Purchase Return (OUT)', value: 'PURCHASE_RETURN' },
-                { label: 'Manual Adjustment IN', value: 'ADJUSTMENT_IN' },
-                { label: 'Manual Adjustment OUT', value: 'ADJUSTMENT_OUT' },
-                { label: 'Opening Stock', value: 'OPENING_STOCK' },
+                { label: `${t('status.purchase')} (${t('status.in')})`, value: 'PURCHASE' },
+                { label: `${t('status.sale')} (${t('status.out')})`, value: 'SALE' },
+                { label: `${t('status.sales_return')} (${t('status.in')})`, value: 'SALES_RETURN' },
+                { label: `${t('status.purchase_return')} (${t('status.out')})`, value: 'PURCHASE_RETURN' },
+                { label: t('status.adjustment_in'), value: 'ADJUSTMENT_IN' },
+                { label: t('status.adjustment_out'), value: 'ADJUSTMENT_OUT' },
+                { label: t('inventory.reason_opening'), value: 'OPENING_STOCK' },
               ]}
             />
           </DataTableToolbar>
 
           {movementsQuery.isLoading ? (
-            <LoadingSpinner label="Loading stock movement audit records…" />
+            <LoadingSpinner label={t('common.loading')} />
           ) : movementsQuery.error ? (
             <div className="error">{movementsQuery.error.message}</div>
           ) : (
             <>
               <DataTable
                 columns={[
-                  'Date',
-                  'Product',
-                  'SKU',
-                  'Movement Type',
-                  'Quantity Change',
-                  'Unit Cost',
-                  'Reason / Context',
-                  'Reference',
+                  t('common.date'),
+                  t('inventory.product'),
+                  t('products.sku'),
+                  t('inventory.movement_type'),
+                  t('inventory.quantity'),
+                  t('inventory.unit_cost'),
+                  t('inventory.reason'),
+                  t('common.id'),
                 ]}
               >
                 {movementsQuery.data?.data.length ? (
@@ -131,7 +133,7 @@ export default function StockMovementsPage() {
                 ) : (
                   <tr>
                     <td colSpan={8}>
-                      <EmptyTableState message="No stock movements found." />
+                      <EmptyTableState message={t('inventory.no_movements_found')} />
                     </td>
                   </tr>
                 )}

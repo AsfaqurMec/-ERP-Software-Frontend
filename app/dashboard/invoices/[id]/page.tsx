@@ -9,8 +9,10 @@ import { api, money } from '../../../../lib/api';
 import { useSiteSettings } from '../../../../hooks/use-site-settings';
 import { CurrencyDisplay, DateDisplay, LoadingSpinner, ErrorState } from '../../../../components/ui';
 import { Printer, ArrowLeft, Building2, CheckCircle2 } from 'lucide-react';
+import { useTranslation } from '../../../../provider';
 
 export default function InvoicePrintPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
 
   const saleQuery = useQuery({
@@ -23,7 +25,7 @@ export default function InvoicePrintPage() {
   if (saleQuery.isLoading) {
     return (
       <div style={{ display: 'grid', placeItems: 'center', minHeight: '60vh' }}>
-        <LoadingSpinner label="Generating corporate tax invoice…" />
+        <LoadingSpinner label={t('common.loading')} />
       </div>
     );
   }
@@ -142,7 +144,7 @@ export default function InvoicePrintPage() {
         {/* Navigation & Print Actions Bar (hidden in print) */}
         <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <Link href={`/dashboard/sales/${id}`} className="ghost" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <ArrowLeft size={16} /> Return to Order
+            <ArrowLeft size={16} /> {t('common.back')}
           </Link>
           <button
             type="button"
@@ -150,7 +152,7 @@ export default function InvoicePrintPage() {
             className="primary"
             style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
           >
-            <Printer size={16} /> Print / Save PDF Invoice
+            <Printer size={16} /> {t('common.export')}
           </button>
         </div>
 
@@ -190,17 +192,17 @@ export default function InvoicePrintPage() {
               </div>
               <p style={{ margin: '8px 0 0', fontSize: 12, color: '#64748b', lineHeight: 1.4 }}>
                 {companyAddress}<br />
-                Phone: {companyPhone} · Email: {companyEmail}
+                {t('common.phone')}: {companyPhone} · {t('common.email')}: {companyEmail}
               </p>
             </div>
 
             <div style={{ textAlign: 'right' }}>
-              <h1 style={{ margin: 0, fontSize: 24, color: '#5068e6', textTransform: 'uppercase' }}>Tax Invoice</h1>
+              <h1 style={{ margin: 0, fontSize: 24, color: '#5068e6', textTransform: 'uppercase' }}>{t('sales.invoice_number')}</h1>
               <div style={{ marginTop: 6, fontSize: 13 }}>
-                <strong>Invoice #:</strong> <code>{s.invoiceNumber}</code>
+                <strong>{t('sales.invoice_number')}:</strong> <code>{s.invoiceNumber}</code>
               </div>
               <div style={{ fontSize: 13, color: '#64748b' }}>
-                <strong>Date:</strong> <DateDisplay value={s.saleDate} />
+                <strong>{t('common.date')}:</strong> <DateDisplay value={s.saleDate} />
               </div>
               <div style={{ marginTop: 6 }}>
                 <span
@@ -214,7 +216,7 @@ export default function InvoicePrintPage() {
                     color: s.paymentStatus === 'PAID' ? '#15803d' : '#b45309',
                   }}
                 >
-                  {s.paymentStatus}
+                  {t(`status.${s.paymentStatus?.toLowerCase()}`, { defaultValue: s.paymentStatus })}
                 </span>
               </div>
             </div>
@@ -225,24 +227,24 @@ export default function InvoicePrintPage() {
           {/* Customer & Payment Meta */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 24 }}>
             <div>
-              <span style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Billed To:</span>
-              <h3 style={{ margin: '4px 0', fontSize: 16 }}>{s.customer ? s.customer.name : 'Walk-in Customer'}</h3>
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>{t('sales.customer')}:</span>
+              <h3 style={{ margin: '4px 0', fontSize: 16 }}>{s.customer ? s.customer.name : t('common.walk_in_customer')}</h3>
               {s.customer && (
                 <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.5 }}>
-                  {s.customer.phone && <div>Phone: {s.customer.phone}</div>}
-                  {s.customer.email && <div>Email: {s.customer.email}</div>}
-                  {s.customer.address && <div>Address: {s.customer.address}</div>}
+                  {s.customer.phone && <div>{t('common.phone')}: {s.customer.phone}</div>}
+                  {s.customer.email && <div>{t('common.email')}: {s.customer.email}</div>}
+                  {s.customer.address && <div>{t('common.address')}: {s.customer.address}</div>}
                 </div>
               )}
             </div>
 
             <div style={{ textAlign: 'right', fontSize: 12, color: '#64748b' }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Payment Information:</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>{t('common.payment_method')}:</span>
               <div style={{ marginTop: 4 }}>
-                Payment Method: <strong>{s.paymentMethod || 'Cash on Delivery'}</strong>
+                {t('common.payment_method')}: <strong>{t(`common.${s.paymentMethod?.toLowerCase()}`, { defaultValue: s.paymentMethod || t('common.cash') })}</strong>
               </div>
               <div>
-                Order Status: <strong>{s.status}</strong>
+                {t('common.status')}: <strong>{t(`status.${s.status?.toLowerCase()}`, { defaultValue: s.status })}</strong>
               </div>
             </div>
           </div>
@@ -252,12 +254,12 @@ export default function InvoicePrintPage() {
             <thead>
               <tr>
                 <th style={{ width: 40 }}>#</th>
-                <th>Item Description</th>
-                <th style={{ textAlign: 'center', width: 90 }}>Qty</th>
-                <th style={{ textAlign: 'right', width: 110 }}>Unit Price</th>
-                <th style={{ textAlign: 'right', width: 90 }}>Discount</th>
-                <th style={{ textAlign: 'right', width: 90 }}>Tax</th>
-                <th style={{ textAlign: 'right', width: 120 }}>Total</th>
+                <th>{t('products.name')}</th>
+                <th style={{ textAlign: 'center', width: 90 }}>{t('documents.qty')}</th>
+                <th style={{ textAlign: 'right', width: 110 }}>{t('documents.unit_price')}</th>
+                <th style={{ textAlign: 'right', width: 90 }}>{t('common.discount')}</th>
+                <th style={{ textAlign: 'right', width: 90 }}>{t('common.tax')}</th>
+                <th style={{ textAlign: 'right', width: 120 }}>{t('common.total')}</th>
               </tr>
             </thead>
             <tbody>
@@ -285,12 +287,12 @@ export default function InvoicePrintPage() {
             <div style={{ fontSize: 12, color: '#64748b' }}>
               {s.notes && (
                 <div style={{ marginBottom: 12 }}>
-                  <span style={{ fontWeight: 700, color: '#1e293b' }}>Order Notes:</span>
+                  <span style={{ fontWeight: 700, color: '#1e293b' }}>{t('documents.internal_notes')}:</span>
                   <p style={{ margin: '4px 0', whiteSpace: 'pre-line' }}>{s.notes}</p>
                 </div>
               )}
               <div>
-                <span style={{ fontWeight: 700, color: '#1e293b' }}>Terms & Conditions:</span>
+                <span style={{ fontWeight: 700, color: '#1e293b' }}>{t('settings.invoice_settings')}:</span>
                 <p style={{ margin: '4px 0', whiteSpace: 'pre-line', fontSize: 11, color: '#94a3b8' }}>
                   {termsText}
                 </p>
@@ -299,24 +301,24 @@ export default function InvoicePrintPage() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: '#64748b' }}>Subtotal:</span>
+                <span style={{ color: '#64748b' }}>{t('common.subtotal')}:</span>
                 <span><CurrencyDisplay value={s.subtotal} /></span>
               </div>
               {Number(s.discount) > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#16a34a' }}>
-                  <span>Order Discount:</span>
+                  <span>{t('common.discount')}:</span>
                   <span>-<CurrencyDisplay value={s.discount} /></span>
                 </div>
               )}
               {Number(s.tax) > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#64748b' }}>VAT / Tax:</span>
+                  <span>{t('common.tax')}:</span>
                   <span>+<CurrencyDisplay value={s.tax} /></span>
                 </div>
               )}
               {Number(s.shipping) > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#64748b' }}>Shipping & Delivery:</span>
+                  <span>{t('documents.shipping_charge')}:</span>
                   <span>+<CurrencyDisplay value={s.shipping} /></span>
                 </div>
               )}
@@ -331,11 +333,11 @@ export default function InvoicePrintPage() {
                   borderTop: '2px solid #e2e8f0',
                 }}
               >
-                <span>Grand Total:</span>
+                <span>{t('sales.grand_total')}:</span>
                 <span><CurrencyDisplay value={s.grandTotal} /></span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', color: '#16a34a', fontWeight: 600 }}>
-                <span>Paid Amount:</span>
+                <span>{t('sales.paid_amount')}:</span>
                 <span><CurrencyDisplay value={s.paidAmount} /></span>
               </div>
               <div
@@ -349,7 +351,7 @@ export default function InvoicePrintPage() {
                   borderTop: '1px dashed #cbd5e1',
                 }}
               >
-                <span>Outstanding Balance Due:</span>
+                <span>{t('sales.due_amount')}:</span>
                 <span><CurrencyDisplay value={s.dueAmount} /></span>
               </div>
             </div>
@@ -363,11 +365,11 @@ export default function InvoicePrintPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 36, paddingTop: 20, borderTop: '1px solid #e2e8f0', fontSize: 12, color: '#94a3b8' }}>
             <div>
               <div style={{ width: 140, borderTop: '1px solid #94a3b8', marginBottom: 4 }} />
-              Customer Signature
+              {t('documents.customer_signature', { defaultValue: 'Customer Signature' })}
             </div>
             <div style={{ textAlign: 'right' }}>
               <div style={{ width: 140, borderTop: '1px solid #94a3b8', marginBottom: 4, marginLeft: 'auto' }} />
-              Authorized Signatory
+              {t('documents.authorized_signatory', { defaultValue: 'Authorized Signatory' })}
             </div>
           </div>
         </div>

@@ -2,8 +2,8 @@
 
 import React, { ReactNode } from 'react';
 import { LoaderCircle, Search, TriangleAlert, Calendar, Filter, X, Check, ArrowUpDown } from 'lucide-react';
-import { money } from '../lib/api';
-import { useTranslation } from '../provider';
+import { money, formatCurrency, formatNumber, formatDate } from '../lib/api';
+import { useTranslation, useAppLanguage } from '../provider';
 
 // ==========================================
 // 1. Layout & Page Containers
@@ -53,25 +53,42 @@ export const PageHeader = ({ title, description, breadcrumbs, action }: PageHead
 // 2. Data Displays & Badges
 // ==========================================
 
-export const CurrencyDisplay = ({ value }: { value: number | string | null | undefined }) => (
-  <>{money(value ?? 0)}</>
-);
+export const CurrencyDisplay = ({
+  value,
+  currency = 'BDT',
+}: {
+  value: number | string | null | undefined;
+  currency?: string;
+}) => {
+  const { language } = useAppLanguage();
+  return <>{formatCurrency(value, currency, language)}</>;
+};
 
-export const NumberDisplay = ({ value }: { value: number | string | null | undefined }) => (
-  <>{new Intl.NumberFormat('en-BD').format(Number(value ?? 0))}</>
-);
+export const NumberDisplay = ({
+  value,
+  decimals = 2,
+}: {
+  value: number | string | null | undefined;
+  decimals?: number;
+}) => {
+  const { language } = useAppLanguage();
+  return <>{formatNumber(value, decimals, language)}</>;
+};
 
 export const DateDisplay = ({ value }: { value: string | Date | null | undefined }) => {
+  const { language } = useAppLanguage();
   if (!value) return <>—</>;
-  return <>{new Date(value).toLocaleDateString('en-BD', { day: '2-digit', month: 'short', year: 'numeric' })}</>;
+  return <>{formatDate(value, language)}</>;
 };
 
 export const PriceDisplay = CurrencyDisplay;
 
 export function StatusBadge({ value }: { value: string | null | undefined }) {
+  const { t } = useTranslation();
   if (!value) return <span>—</span>;
   const normalized = value.toLowerCase();
-  return <span className={`status ${normalized}`}>{value.replace(/_/g, ' ')}</span>;
+  const label = t(`status.${normalized}`, { defaultValue: value.replace(/_/g, ' ') });
+  return <span className={`status ${normalized}`}>{label}</span>;
 }
 
 export function PaymentStatusBadge({ value }: { value: string | null | undefined }) {
@@ -362,12 +379,15 @@ export function DataTablePagination({
   );
 }
 
-export const TableSkeleton = ({ rows = 5 }: { rows?: number }) => (
-  <div className="skeleton">
-    <LoaderCircle className="spin" size={18} style={{ display: 'inline', marginRight: 8 }} />
-    Loading {rows} records…
-  </div>
-);
+export const TableSkeleton = ({ rows = 5 }: { rows?: number }) => {
+  const { t } = useTranslation();
+  return (
+    <div className="skeleton">
+      <LoaderCircle className="spin" size={18} style={{ display: 'inline', marginRight: 8 }} />
+      {t('common.loading')} ({rows} {t('common.records')})
+    </div>
+  );
+};
 
 export const EmptyTableState = ({ message }: { message?: string }) => {
   const { t } = useTranslation();
@@ -381,16 +401,18 @@ export const EmptyTableState = ({ message }: { message?: string }) => {
 export function SearchInput({
   value,
   onChange,
-  placeholder = 'Search…',
+  placeholder,
 }: {
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
 }) {
+  const { t } = useTranslation();
+  const actualPlaceholder = placeholder || `${t('common.search')}…`;
   return (
     <label className="search">
       <Search size={16} color="#8c93a8" />
-      <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} />
+      <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={actualPlaceholder} />
       {value && (
         <button
           type="button"
@@ -415,9 +437,10 @@ export function FilterDropdown({
   options: { label: string; value: string }[];
   label?: string;
 }) {
+  const { t } = useTranslation();
   return (
-    <select aria-label={label || 'Filter'} value={value} onChange={(e) => onChange(e.target.value)}>
-      <option value="">{label || 'All'}</option>
+    <select aria-label={label || t('common.filter')} value={value} onChange={(e) => onChange(e.target.value)}>
+      <option value="">{label || t('common.all')}</option>
       {options.map((x) => (
         <option key={x.value} value={x.value}>
           {x.label}
@@ -430,19 +453,21 @@ export function FilterDropdown({
 export function StatusFilter({
   value,
   onChange,
-  options = [
-    { label: 'All Statuses', value: '' },
-    { label: 'Active', value: 'ACTIVE' },
-    { label: 'Inactive', value: 'INACTIVE' },
-  ],
+  options,
 }: {
   value: string;
   onChange: (v: string) => void;
   options?: { label: string; value: string }[];
 }) {
+  const { t } = useTranslation();
+  const defaultOptions = options || [
+    { label: `${t('common.all')} ${t('common.status')}`, value: '' },
+    { label: t('status.active'), value: 'ACTIVE' },
+    { label: t('status.inactive'), value: 'INACTIVE' },
+  ];
   return (
     <select aria-label="Status filter" value={value} onChange={(e) => onChange(e.target.value)}>
-      {options.map((x) => (
+      {defaultOptions.map((x) => (
         <option key={x.value} value={x.value}>
           {x.label}
         </option>
@@ -462,6 +487,7 @@ export function DateRangePicker({
   onFromChange: (v: string) => void;
   onToChange: (v: string) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#fff', border: '1px solid #dfe4ef', borderRadius: 8, padding: '0 8px' }}>
       <Calendar size={15} color="#8c93a8" />
@@ -471,7 +497,7 @@ export function DateRangePicker({
         onChange={(e) => onFromChange(e.target.value)}
         style={{ border: 0, padding: '8px 4px', fontSize: 12, outline: 'none' }}
       />
-      <span style={{ fontSize: 12, color: '#8c93a8' }}>to</span>
+      <span style={{ fontSize: 12, color: '#8c93a8' }}>{t('common.to')}</span>
       <input
         type="date"
         value={to || ''}
@@ -521,8 +547,8 @@ export function ConfirmDialog({
   open,
   title,
   children,
-  confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
+  confirmLabel,
+  cancelLabel,
   danger = false,
   onConfirm,
   onCancel,
@@ -536,6 +562,7 @@ export function ConfirmDialog({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
+  const { t } = useTranslation();
   if (!open) return null;
   return (
     <div className="dialog-backdrop">
@@ -544,10 +571,10 @@ export function ConfirmDialog({
         <p>{children}</p>
         <div>
           <button type="button" onClick={onCancel}>
-            {cancelLabel}
+            {cancelLabel || t('common.cancel')}
           </button>
           <button type="button" className={danger ? 'danger' : 'primary-button'} onClick={onConfirm}>
-            {confirmLabel}
+            {confirmLabel || t('common.confirm')}
           </button>
         </div>
       </div>
@@ -555,9 +582,17 @@ export function ConfirmDialog({
   );
 }
 
-export const DeleteDialog = (props: Omit<Parameters<typeof ConfirmDialog>[0], 'danger'>) => (
-  <ConfirmDialog {...props} danger={true} confirmLabel="Delete" />
-);
+export const DeleteDialog = (props: Omit<Parameters<typeof ConfirmDialog>[0], 'danger'>) => {
+  const { t } = useTranslation();
+  return (
+    <ConfirmDialog
+      {...props}
+      danger={true}
+      confirmLabel={props.confirmLabel || t('common.delete')}
+      cancelLabel={props.cancelLabel || t('common.cancel')}
+    />
+  );
+};
 
 export const DetailsDialog = ({
   open,
@@ -590,11 +625,66 @@ export const DetailsDialog = ({
 // 7. Feedback & State Display
 // ==========================================
 
-export const LoadingSpinner = ({ label = 'Loading…' }: { label?: string }) => (
-  <div className="loading">
-    <LoaderCircle className="spin" size={22} style={{ display: 'inline', marginRight: 8 }} /> {label}
-  </div>
-);
+export interface LoadingSpinnerProps {
+  label?: string;
+  size?: 'sm' | 'md' | 'lg';
+  fullPage?: boolean;
+}
+
+export const LoadingSpinner = ({ label, size = 'md', fullPage = false }: LoadingSpinnerProps) => {
+  const { t } = useTranslation();
+  const pxSize = size === 'sm' ? 20 : size === 'lg' ? 42 : 32;
+  const borderWidth = size === 'sm' ? 2.5 : size === 'lg' ? 3.5 : 3;
+
+  const content = (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: size === 'sm' ? 'row' : 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: size === 'sm' ? 8 : 12,
+        padding: size === 'sm' ? '6px 10px' : '36px 20px',
+        color: '#475569',
+        fontSize: size === 'sm' ? '12px' : '13.5px',
+        fontWeight: 600,
+        textAlign: 'center',
+      }}
+    >
+      <div
+        style={{
+          width: pxSize,
+          height: pxSize,
+          borderRadius: '50%',
+          border: `${borderWidth}px solid #e2e8f0`,
+          borderTopColor: '#4f46e5',
+          borderRightColor: '#818cf8',
+          animation: 'spin 0.75s linear infinite',
+          boxSizing: 'border-box',
+          flexShrink: 0,
+        }}
+      />
+      <span style={{ letterSpacing: '0.2px' }}>{label || t('common.loading')}</span>
+    </div>
+  );
+
+  if (fullPage) {
+    return (
+      <div
+        style={{
+          minHeight: '60vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {content}
+      </div>
+    );
+  }
+
+  return <div className="loading" style={{ background: '#ffffff', borderRadius: 12, border: '1px solid #edf0f7' }}>{content}</div>;
+};
 
 export const Skeleton = ({ height = 100 }: { height?: number }) => (
   <div className="skeleton" style={{ height }} />

@@ -7,8 +7,10 @@ import { api } from '../../../lib/api';
 import { PageContainer, PageHeader } from '../../../components/ui';
 import { ShieldCheck, Plus, Users, Edit, Trash2, CheckCircle2, Lock, AlertCircle } from 'lucide-react';
 import { usePermissions } from '../../../hooks/use-auth';
+import { useTranslation } from '../../../provider';
 
 export default function RolesPage() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { hasPermission } = usePermissions();
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -38,18 +40,17 @@ export default function RolesPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Roles & Permissions"
-        description="Configure fine-grained access control matrices and manage custom authorization policies."
+        title={t('roles.title')}
+        description={t('roles.description')}
         breadcrumbs={[
-          { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Administration' },
-          { label: 'Roles & Permissions' },
+          { label: t('common.dashboard'), href: '/dashboard' },
+          { label: t('roles.title') },
         ]}
         action={
           canCreateRole && (
             <Link href="/dashboard/roles/create" className="primary-button">
               <Plus size={16} style={{ marginRight: 6 }} />
-              Create Custom Role
+              {t('roles.create_role')}
             </Link>
           )
         }
@@ -77,7 +78,7 @@ export default function RolesPage() {
 
       {isLoading ? (
         <div className="skeleton" style={{ height: 260 }}>
-          Loading security roles...
+          {t('common.loading')}
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 20 }}>
@@ -140,11 +141,11 @@ export default function RolesPage() {
                   <div style={{ display: 'flex', gap: 16, padding: '12px 0', borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9', fontSize: '0.8rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#334155' }}>
                       <Users size={14} color="#6366f1" />
-                      <strong>{role.userCount}</strong> assigned user(s)
+                      <strong>{role.userCount}</strong> {t('users.title')}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#334155' }}>
                       <CheckCircle2 size={14} color="#10b981" />
-                      <strong>{permCount}</strong> permissions
+                      <strong>{permCount}</strong> {t('roles.permissions')}
                     </div>
                   </div>
                 </div>
@@ -156,7 +157,7 @@ export default function RolesPage() {
                       className="ghost"
                       style={{ padding: '6px 12px', fontSize: '0.78rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}
                     >
-                      <Edit size={13} /> Edit Matrix
+                      <Edit size={13} /> {t('common.edit')}
                     </Link>
                   )}
 
@@ -166,7 +167,7 @@ export default function RolesPage() {
                       onClick={() => setDeleteId(role.id)}
                       className="ghost"
                       style={{ padding: '6px 10px', color: '#dc2626', borderColor: '#fecaca' }}
-                      title="Delete Custom Role"
+                      title={t('common.delete')}
                     >
                       <Trash2 size={13} />
                     </button>
@@ -182,13 +183,13 @@ export default function RolesPage() {
       {deleteId && (
         <div className="dialog-backdrop">
           <div className="dialog">
-            <h3>Delete Custom Role</h3>
+            <h3>{t('roles.delete_role')}</h3>
             <p>
-              Are you sure you want to permanently delete this role? This action cannot be undone.
+              {t('common.delete_confirm')}
             </p>
             <div>
               <button type="button" onClick={() => setDeleteId(null)} disabled={deleteMutation.isPending}>
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 type="button"
@@ -196,7 +197,7 @@ export default function RolesPage() {
                 onClick={() => deleteMutation.mutate(deleteId)}
                 disabled={deleteMutation.isPending}
               >
-                {deleteMutation.isPending ? 'Deleting...' : 'Confirm Delete'}
+                {deleteMutation.isPending ? t('common.loading') : t('common.delete')}
               </button>
             </div>
           </div>

@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../components/auth-guard';
 import { Shell } from '../../../components/shell';
 import { api } from '../../../lib/api';
+import { useTranslation } from '../../../provider';
 import {
   CurrencyDisplay,
   DataTable,
@@ -21,6 +22,7 @@ import {
 } from '../../../components/ui';
 
 export default function PaymentsPage() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [search, setSearch] = useState('');
@@ -45,9 +47,9 @@ export default function PaymentsPage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title="Payments Ledger"
-            description="Audit all customer collections and supplier disbursement receipts."
-            breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Finance & Accounts', href: '/dashboard/payments' }, { label: 'Payments Ledger' }]}
+            title={t('payments.title')}
+            description={t('payments.description')}
+            breadcrumbs={[{ label: t('common.dashboard'), href: '/dashboard' }, { label: t('payments.title') }]}
           />
 
           <DataTableToolbar>
@@ -57,24 +59,24 @@ export default function PaymentsPage() {
                 setSearch(v);
                 setPage(1);
               }}
-              placeholder="Search reference, customer or supplier…"
+              placeholder={t('payments.search_placeholder')}
             />
 
             <FilterDropdown
-              label="All Party Types"
+              label={t('payments.all_party_types')}
               value={partyType}
               onChange={(v) => {
                 setPartyType(v);
                 setPage(1);
               }}
               options={[
-                { label: 'Customer Collections', value: 'CUSTOMER' },
-                { label: 'Supplier Disbursements', value: 'SUPPLIER' },
+                { label: t('payments.customer_collections'), value: 'CUSTOMER' },
+                { label: t('payments.supplier_disbursements'), value: 'SUPPLIER' },
               ]}
             />
 
             <FilterDropdown
-              label="All Payment Methods"
+              label={t('payments.all_payment_methods')}
               value={method}
               onChange={(v) => {
                 setMethod(v);
@@ -88,12 +90,22 @@ export default function PaymentsPage() {
           </DataTableToolbar>
 
           {paymentsQuery.isLoading ? (
-            <LoadingSpinner label="Loading payments ledger…" />
+            <LoadingSpinner label={t('common.loading')} />
           ) : paymentsQuery.error ? (
             <div className="error">{paymentsQuery.error.message}</div>
           ) : (
             <>
-              <DataTable columns={['Date', 'Party Type', 'Party Name', 'Amount', 'Method', 'Reference / Link', 'Notes']}>
+              <DataTable
+                columns={[
+                  t('common.date'),
+                  t('payments.party_type'),
+                  t('payments.party_name'),
+                  t('payments.amount'),
+                  t('payments.payment_method'),
+                  t('payments.reference'),
+                  t('common.notes'),
+                ]}
+              >
                 {paymentsQuery.data?.data.length ? (
                   paymentsQuery.data.data.map((p: any) => {
                     const partyName = p.partyType === 'CUSTOMER' ? p.customer?.name : p.supplier?.name;
@@ -134,7 +146,7 @@ export default function PaymentsPage() {
                 ) : (
                   <tr>
                     <td colSpan={7}>
-                      <EmptyTableState message="No payment records found." />
+                      <EmptyTableState message={t('payments.no_payments_found')} />
                     </td>
                   </tr>
                 )}

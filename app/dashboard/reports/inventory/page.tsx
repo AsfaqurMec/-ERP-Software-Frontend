@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../../components/auth-guard';
 import { Shell } from '../../../../components/shell';
 import { api } from '../../../../lib/api';
+import { useTranslation } from '../../../../provider';
 import {
   CurrencyDisplay,
   DataTable,
@@ -21,6 +22,7 @@ import {
 import { Boxes, Coins, AlertTriangle, XCircle } from 'lucide-react';
 
 export default function InventoryReportPage() {
+  const { t } = useTranslation();
   const inventoryReportQuery = useQuery({
     queryKey: ['inventory-report'],
     queryFn: () => api<any>('/reports/inventory'),
@@ -31,38 +33,38 @@ export default function InventoryReportPage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title="Inventory Valuation & Stock Health Report"
-            description="Catalog-wide audit of stock quantities, Weighted Average Cost valuations and safety thresholds."
+            title={t('reports.inventory_title')}
+            description={t('reports.inventory_desc')}
             breadcrumbs={[
-              { label: 'Dashboard', href: '/dashboard' },
-              { label: 'Reports', href: '/dashboard/reports' },
-              { label: 'Inventory' },
+              { label: t('common.dashboard'), href: '/dashboard' },
+              { label: t('reports.title'), href: '/dashboard/reports' },
+              { label: t('reports.inventory_title') },
             ]}
           />
 
           {inventoryReportQuery.isLoading ? (
-            <LoadingSpinner label="Auditing warehouse catalog valuations…" />
+            <LoadingSpinner label={t('common.loading')} />
           ) : inventoryReportQuery.error ? (
             <ErrorState message={inventoryReportQuery.error.message} onRetry={() => inventoryReportQuery.refetch()} />
           ) : (
             <>
               <StatCardGrid columns={3}>
                 <StatCard
-                  label="Total Stock Quantity"
-                  value={`${inventoryReportQuery.data.totalQuantity} units`}
-                  detail={`${inventoryReportQuery.data.totalProducts} catalog products`}
+                  label={t('products.stock_units')}
+                  value={`${inventoryReportQuery.data.totalQuantity} ${t('products.units')}`}
+                  detail={`${inventoryReportQuery.data.totalProducts} ${t('dashboard.total_catalog_products')}`}
                   icon={<Boxes color="#5068e6" size={20} />}
                   kind="blue"
                 />
                 <StatCard
-                  label="Total Stock Asset Valuation"
+                  label={t('products.stock_value')}
                   value={<CurrencyDisplay value={inventoryReportQuery.data.totalValuation} />}
-                  detail="Calculated from Weighted Average Cost"
+                  detail={t('reports.inventory_title')}
                   icon={<Coins color="#28a476" size={20} />}
                   kind="green"
                 />
                 <StatCard
-                  label="Average Item Valuation"
+                  label={t('products.purchase_price')}
                   value={
                     <CurrencyDisplay
                       value={
@@ -73,7 +75,7 @@ export default function InventoryReportPage() {
                       }
                     />
                   }
-                  detail="Weighted Average Unit Cost"
+                  detail={t('products.purchase_price')}
                   kind="blue"
                 />
               </StatCardGrid>
@@ -81,14 +83,14 @@ export default function InventoryReportPage() {
               <div style={{ marginTop: 16 }}>
                 <DataTable
                   columns={[
-                    'Product Name',
-                    'SKU',
-                    'Category',
-                    'Current Stock',
-                    'Avg Unit Cost',
-                    'Total Valuation',
-                    'Min / Max Threshold',
-                    'Status',
+                    t('products.name'),
+                    t('products.sku'),
+                    t('products.category'),
+                    t('inventory.current_stock'),
+                    t('products.purchase_price'),
+                    t('products.stock_value'),
+                    `${t('products.min_stock')} / ${t('products.max_stock')}`,
+                    t('common.status'),
                   ]}
                 >
                   {inventoryReportQuery.data.products?.length ? (
@@ -129,7 +131,7 @@ export default function InventoryReportPage() {
                   ) : (
                     <tr>
                       <td colSpan={8}>
-                        <EmptyTableState message="No inventory products found." />
+                        <EmptyTableState message={t('products.no_products_found')} />
                       </td>
                     </tr>
                   )}

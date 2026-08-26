@@ -74,11 +74,11 @@ export default function PurchaseDuePage() {
   async function handlePayDue(e: FormEvent) {
     e.preventDefault();
     if (!selectedPurchase || !selectedPurchase.supplier) {
-      setPayError('Supplier details missing on purchase order.');
+      setPayError(t('common.error'));
       return;
     }
     if (!payAmount || Number(payAmount) <= 0) {
-      setPayError('Payment amount must be greater than zero.');
+      setPayError(t('payments.amount'));
       return;
     }
 
@@ -107,7 +107,7 @@ export default function PurchaseDuePage() {
       duePurchasesQuery.refetch();
       overviewQuery.refetch();
     } catch (err) {
-      setPayError(err instanceof Error ? err.message : 'Failed to record supplier payment.');
+      setPayError(err instanceof Error ? err.message : t('common.error'));
     } finally {
       setPaySaving(false);
     }
@@ -118,35 +118,35 @@ export default function PurchaseDuePage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title="Purchase Due & Payables"
-            description="Manage all purchase orders with pending dues and disburse supplier payments."
+            title={t('dues.supplier_due_title')}
+            description={t('dues.supplier_due_desc')}
             breadcrumbs={[
-              { label: 'Dashboard', href: '/dashboard' },
-              { label: 'Finance & Accounts', href: '/dashboard/payments' },
-              { label: 'Purchase Due' },
+              { label: t('common.dashboard'), href: '/dashboard' },
+              { label: t('payments.title'), href: '/dashboard/payments' },
+              { label: t('dues.supplier_due_title') },
             ]}
           />
 
           {ov && (
             <StatCardGrid columns={3}>
               <StatCard
-                label="Total Outstanding Payable"
+                label={t('dues.total_payable')}
                 value={<CurrencyDisplay value={ov.totalPayable} />}
-                detail="Aggregate unpaid supplier obligations"
+                detail={t('dashboard.payables_to_suppliers')}
                 icon={<Coins color="#ef4444" size={20} />}
                 kind="rose"
               />
               <StatCard
-                label="Disbursed Today"
+                label={t('payments.disbursed_today')}
                 value={<CurrencyDisplay value={ov.paidToday} />}
-                detail="Settlements and supplier payouts today"
+                detail={t('payments.supplier_disbursements')}
                 icon={<ArrowUpRight color="#d28d2b" size={20} />}
                 kind="amber"
               />
               <StatCard
-                label="Due Orders Count"
+                label={t('dues.due_orders_count')}
                 value={String(duePurchasesQuery.data?.meta.total ?? '—')}
-                detail="Active purchase orders with pending balance"
+                detail={t('purchases.title')}
                 icon={<PackagePlus color="#6366f1" size={20} />}
                 kind="blue"
               />
@@ -160,26 +160,26 @@ export default function PurchaseDuePage() {
                 setSearch(v);
                 setPage(1);
               }}
-              placeholder="Search purchase number, invoice ref, supplier, or company…"
+              placeholder={t('purchases.search_placeholder')}
             />
           </DataTableToolbar>
 
           {duePurchasesQuery.isLoading ? (
-            <LoadingSpinner label="Loading purchase orders with outstanding dues…" />
+            <LoadingSpinner label={t('common.loading')} />
           ) : duePurchasesQuery.error ? (
             <div className="error">{duePurchasesQuery.error.message}</div>
           ) : (
             <>
               <DataTable
                 columns={[
-                  'Purchase #',
-                  'Order Date',
-                  'Supplier',
-                  'Grand Total',
-                  'Paid Amount',
-                  'Outstanding Due',
-                  'Payment Status',
-                  'Actions',
+                  t('purchases.purchase_number'),
+                  t('common.date'),
+                  t('purchases.supplier'),
+                  t('purchases.grand_total'),
+                  t('purchases.paid_amount'),
+                  t('purchases.due_amount'),
+                  t('purchases.payment_status'),
+                  t('common.actions'),
                 ]}
               >
                 {duePurchasesQuery.data?.data.length ? (
@@ -244,9 +244,9 @@ export default function PurchaseDuePage() {
                                 fontSize: 12,
                                 gap: 4,
                               }}
-                              title="Pay supplier due amount"
+                              title={t('dues.pay_due')}
                             >
-                              <Coins size={14} /> Pay Due
+                              <Coins size={14} /> {t('dues.pay_due')}
                             </button>
                           )}
                           <Link
@@ -260,9 +260,9 @@ export default function PurchaseDuePage() {
                               gap: 4,
                               textDecoration: 'none',
                             }}
-                            title="View purchase order specifications"
+                            title={t('common.view')}
                           >
-                            <Eye size={14} /> View Order
+                            <Eye size={14} /> {t('common.view')}
                           </Link>
                         </div>
                       </td>
@@ -271,7 +271,7 @@ export default function PurchaseDuePage() {
                 ) : (
                   <tr>
                     <td colSpan={8}>
-                      <EmptyTableState message="No purchase orders with outstanding due found." />
+                      <EmptyTableState message={t('dues.no_due_records')} />
                     </td>
                   </tr>
                 )}
@@ -291,23 +291,23 @@ export default function PurchaseDuePage() {
           {selectedPurchase && (
             <div className="dialog-backdrop">
               <div className="dialog" style={{ width: 'min(100%, 520px)' }}>
-                <h3>Pay Purchase Due</h3>
+                <h3>{t('dues.pay_due')}</h3>
                 <p style={{ margin: '4px 0 16px', fontSize: 13, color: '#64748b' }}>
-                  Disburse payment to <strong>{selectedPurchase.supplier?.name}</strong> for Purchase #{selectedPurchase.purchaseNumber}.
+                  {t('dues.supplier_due_desc')}
                 </p>
 
                 <form onSubmit={handlePayDue} style={{ display: 'grid', gap: 14 }}>
                   <div style={{ padding: 12, background: '#f8fafc', borderRadius: 8, fontSize: 13, border: '1px solid #e2e8f0' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <span style={{ color: '#64748b' }}>Purchase Order:</span>
+                      <span style={{ color: '#64748b' }}>{t('purchases.purchase_number')}:</span>
                       <strong>{selectedPurchase.purchaseNumber}</strong>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <span style={{ color: '#64748b' }}>Supplier:</span>
+                      <span style={{ color: '#64748b' }}>{t('purchases.supplier')}:</span>
                       <strong>{selectedPurchase.supplier?.name}</strong>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ color: '#64748b' }}>Outstanding Due on Order:</span>
+                      <span style={{ color: '#64748b' }}>{t('purchases.due_amount')}:</span>
                       <strong style={{ color: '#ef4444', fontSize: 15 }}>
                         <CurrencyDisplay value={selectedPurchase.dueAmount} />
                       </strong>
@@ -315,7 +315,7 @@ export default function PurchaseDuePage() {
                   </div>
 
                   <div className="form-grid">
-                    <FormField label="Amount to Pay (BDT)" required>
+                    <FormField label={t('payments.amount')} required>
                       <input
                         required
                         min="0.01"
@@ -327,7 +327,7 @@ export default function PurchaseDuePage() {
                       />
                     </FormField>
 
-                    <FormField label="Payment Method" required>
+                    <FormField label={t('payments.payment_method')} required>
                       <select value={payMethod} onChange={(e) => setPayMethod(e.target.value)}>
                         {['CASH', 'BANK', 'BKASH', 'NAGAD', 'CARD', 'OTHER'].map((m) => (
                           <option key={m} value={m}>
@@ -339,7 +339,7 @@ export default function PurchaseDuePage() {
                   </div>
 
                   <div className="form-grid">
-                    <FormField label="Disbursement Date & Time" required>
+                    <FormField label={t('common.date_time')} required>
                       <input
                         required
                         type="datetime-local"
@@ -348,20 +348,20 @@ export default function PurchaseDuePage() {
                       />
                     </FormField>
 
-                    <FormField label="Reference / Cheque / Trx ID">
+                    <FormField label={t('payments.reference')}>
                       <input
                         value={payReference}
                         onChange={(e) => setPayReference(e.target.value)}
-                        placeholder="e.g. TXN-108422 or Cheque #"
+                        placeholder="Trx ID / Ref"
                       />
                     </FormField>
                   </div>
 
-                  <FormField label="Notes / Remarks">
+                  <FormField label={t('common.notes')}>
                     <textarea
                       value={payNote}
                       onChange={(e) => setPayNote(e.target.value)}
-                      placeholder="Optional notes, bank cheque details…"
+                      placeholder={t('common.notes')}
                       style={{ minHeight: 60 }}
                     />
                   </FormField>
@@ -370,10 +370,10 @@ export default function PurchaseDuePage() {
 
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 8 }}>
                     <button type="button" onClick={() => setSelectedPurchase(null)}>
-                      Cancel
+                      {t('common.cancel')}
                     </button>
                     <button type="submit" className="primary-button" disabled={paySaving}>
-                      {paySaving ? 'Processing…' : 'Confirm Payment'}
+                      {paySaving ? t('common.processing') : t('common.save')}
                     </button>
                   </div>
                 </form>

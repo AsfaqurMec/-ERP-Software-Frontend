@@ -23,8 +23,10 @@ import { AuthGuard } from '../../../components/auth-guard';
 import { Shell } from '../../../components/shell';
 import { CurrencyDisplay, PageContainer, PageHeader, StatCard, StatCardGrid } from '../../../components/ui';
 import { api } from '../../../lib/api';
+import { useTranslation } from '../../../provider';
 
 export default function NotificationsPage() {
+  const { t } = useTranslation();
   const [activeFilter, setActiveFilter] = useState<'ALL' | 'RECEIVABLES' | 'PAYABLES' | 'STOCK' | 'DEAD_STOCK' | 'CRITICAL'>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -68,9 +70,9 @@ export default function NotificationsPage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title="System Alerts & Notifications"
-            description="Dynamic real-time monitor for customer dues, supplier payables, low inventory limits, and dead stock."
-            breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Notifications' }]}
+            title={t('notifications.title')}
+            description={t('notifications.description')}
+            breadcrumbs={[{ label: t('common.dashboard'), href: '/dashboard' }, { label: t('notifications.title') }]}
             action={
               <button
                 type="button"
@@ -80,7 +82,7 @@ export default function NotificationsPage() {
                 style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
               >
                 <RefreshCw size={14} className={isRefetching ? 'animate-spin' : ''} />
-                <span>{isRefetching ? 'Syncing…' : 'Refresh Alerts'}</span>
+                <span>{isRefetching ? t('common.loading') : t('common.refresh')}</span>
               </button>
             }
           />
@@ -92,9 +94,9 @@ export default function NotificationsPage() {
               style={{ cursor: 'pointer', transition: 'transform 0.15s ease' }}
             >
               <StatCard
-                label="Customer Due"
+                label={t('dues.customer_due_title')}
                 value={<CurrencyDisplay value={summary.customerDue.totalAmount} />}
-                detail={`${summary.customerDue.count} sales orders awaiting collection`}
+                detail={`${summary.customerDue.count} ${t('sales.orders')}`}
                 icon={<ArrowDownLeft size={20} color="#d28d2b" />}
                 kind="amber"
               />
@@ -105,9 +107,9 @@ export default function NotificationsPage() {
               style={{ cursor: 'pointer', transition: 'transform 0.15s ease' }}
             >
               <StatCard
-                label="Supplier Due"
+                label={t('dues.supplier_due_title')}
                 value={<CurrencyDisplay value={summary.supplierDue.totalAmount} />}
-                detail={`${summary.supplierDue.count} purchase orders pending payment`}
+                detail={`${summary.supplierDue.count} ${t('purchases.title')}`}
                 icon={<ArrowUpRight size={20} color="#ef4444" />}
                 kind="rose"
               />
@@ -118,9 +120,9 @@ export default function NotificationsPage() {
               style={{ cursor: 'pointer', transition: 'transform 0.15s ease' }}
             >
               <StatCard
-                label="Low Stock"
-                value={`${summary.lowStock.totalCount} Products`}
-                detail={`${summary.lowStock.outOfStockCount} out of stock · ${summary.lowStock.lowStockCount} low threshold`}
+                label={t('dashboard.low_stock')}
+                value={`${summary.lowStock.totalCount} ${t('products.units')}`}
+                detail={`${summary.lowStock.outOfStockCount} ${t('dashboard.out_of_stock')} · ${summary.lowStock.lowStockCount} ${t('dashboard.low_stock')}`}
                 icon={<Package size={20} color="#d28d2b" />}
                 kind={summary.lowStock.outOfStockCount > 0 ? 'rose' : 'amber'}
               />
@@ -131,9 +133,9 @@ export default function NotificationsPage() {
               style={{ cursor: 'pointer', transition: 'transform 0.15s ease' }}
             >
               <StatCard
-                label="Dead Stock"
-                value={`${summary.deadStock.count} Products`}
-                detail={`Valuation: ৳ ${Number(summary.deadStock.totalValue).toLocaleString('en-BD')} (no sales 90d+)`}
+                label={t('notifications.dead_stock')}
+                value={`${summary.deadStock.count} ${t('products.units')}`}
+                detail={`${t('products.stock_value')}: ${Number(summary.deadStock.totalValue).toLocaleString('en-BD')}`}
                 icon={<Archive size={20} color="#5068e6" />}
                 kind="blue"
               />
@@ -156,12 +158,12 @@ export default function NotificationsPage() {
           >
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {[
-                { id: 'ALL', label: `All Alerts (${summary.total})` },
-                { id: 'RECEIVABLES', label: `Customer Due (${summary.customerDue.count})` },
-                { id: 'PAYABLES', label: `Supplier Due (${summary.supplierDue.count})` },
-                { id: 'STOCK', label: `Low Stock (${summary.lowStock.totalCount})` },
-                { id: 'DEAD_STOCK', label: `Dead Stock (${summary.deadStock.count})` },
-                { id: 'CRITICAL', label: `Critical (${summary.critical})` },
+                { id: 'ALL', label: `${t('notifications.all_alerts')} (${summary.total})` },
+                { id: 'RECEIVABLES', label: `${t('dues.customer_due_title')} (${summary.customerDue.count})` },
+                { id: 'PAYABLES', label: `${t('dues.supplier_due_title')} (${summary.supplierDue.count})` },
+                { id: 'STOCK', label: `${t('dashboard.low_stock')} (${summary.lowStock.totalCount})` },
+                { id: 'DEAD_STOCK', label: `${t('notifications.dead_stock')} (${summary.deadStock.count})` },
+                { id: 'CRITICAL', label: `${t('notifications.critical')} (${summary.critical})` },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -184,7 +186,7 @@ export default function NotificationsPage() {
               <Search size={15} color="#8b94b0" />
               <input
                 type="text"
-                placeholder="Search alerts, items, customers…"
+                placeholder={t('common.search')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 style={{
@@ -202,14 +204,14 @@ export default function NotificationsPage() {
           {/* Dynamic Alerts List */}
           {isLoading ? (
             <div className="card skeleton-row" style={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ color: '#8b94b0' }}>Scanning system for live operational alerts…</span>
+              <span style={{ color: '#8b94b0' }}>{t('common.loading')}</span>
             </div>
           ) : filteredAlerts.length === 0 ? (
             <div className="card empty-state" style={{ textAlign: 'center', padding: '48px 24px' }}>
               <CheckCircle2 size={44} color="#28a476" style={{ margin: '0 auto 12px' }} />
-              <h3 style={{ fontSize: 18, color: '#1e293b' }}>All Systems Healthy</h3>
+              <h3 style={{ fontSize: 18, color: '#1e293b' }}>{t('notifications.no_alerts')}</h3>
               <p style={{ color: '#8b94b0', maxWidth: 460, margin: '6px auto 0', fontSize: 13 }}>
-                There are no active alerts matching your current filter. Dues, payables, and inventory thresholds are fully aligned.
+                {t('notifications.no_alerts_desc')}
               </p>
             </div>
           ) : (

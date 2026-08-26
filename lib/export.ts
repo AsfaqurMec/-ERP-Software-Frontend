@@ -1,7 +1,11 @@
 /**
- * Universal export utilities for CSV, Excel, and Print/PDF.
- * Supports UTF-8 BOM encoding for seamless Microsoft Excel compatibility.
+ * Universal export utilities for CSV, Excel (.xlsx), and Print/PDF.
+ * Generates authentic OpenXML (.xlsx) files with UTF-8 BOM encoding for CSV
+ * and responsive typography for Bengali & English in PDF/Print.
  */
+
+import * as XLSX from 'xlsx';
+import { getCurrentLanguage, formatDate, formatDateTime } from './format';
 
 export interface ExportColumn<T = any> {
   header: string;
@@ -10,7 +14,7 @@ export interface ExportColumn<T = any> {
   format?: (value: any) => string | number;
 }
 
-function extractValue(row: any, key: string, formatter?: (r: any) => string | number, format?: (v: any) => string | number): string {
+export function extractValue(row: any, key: string, formatter?: (r: any) => string | number, format?: (v: any) => string | number): string {
   if (formatter) {
     return String(formatter(row) ?? '');
   }
@@ -75,40 +79,43 @@ export function exportToExcel<T = any>(
   columns: ExportColumn<T>[],
   data: T[]
 ) {
-  // Generates clean HTML Spreadsheet XML format recognized natively by Microsoft Excel
-  let xml = `<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:o="urn:schemas-microsoft-com:office:office"
- xmlns:x="urn:schemas-microsoft-com:office:excel"
- xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
- <Worksheet ss:Name="Sheet1">
-  <Table>
-   <Row>`;
-
-  for (const col of columns) {
-    xml += `<Cell ss:StyleID="header"><Data ss:Type="String">${escapeHtml(col.header)}</Data></Cell>`;
-  }
-  xml += `</Row>`;
-
-  for (const row of data) {
-    xml += `<Row>`;
-    for (const col of columns) {
-      const val = extractValue(row, col.key, col.formatter, col.format);
+  // Generates genuine OpenXML (.xlsx) binary workbook using SheetJS
+  const headers = columns.map((c) => c.header);
+  const rows = data.map((row) =>
+    columns.map((c) => {
+      const val = extractValue(row, c.key, c.formatter, c.format);
       const isNum = !isNaN(Number(val)) && val.trim() !== '' && !val.startsWith('0') && !val.includes('-');
-      xml += `<Cell><Data ss:Type="${isNum ? 'Number' : 'String'}">${escapeHtml(val)}</Data></Cell>`;
+      return isNum ? Number(val) : val;
+    })
+  );
+
+  const wsData = [headers, ...rows];
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+  // Set column widths based on maximum length of content
+  const colWidths = columns.map((col, colIdx) => {
+    let maxLen = col.header.length;
+    for (const r of rows) {
+      const cellVal = String(r[colIdx] ?? '');
+      if (cellVal.length > maxLen) {
+        maxLen = cellVal.length;
+      }
     }
-    xml += `</Row>`;
-  }
+    return { wch: Math.min(Math.max(maxLen + 3, 12), 50) };
+  });
+  ws['!cols'] = colWidths;
 
-  xml += `  </Table>
- </Worksheet>
-</Workbook>`;
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Report');
 
-  const blob = new Blob([xml], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+  const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([excelBuffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.setAttribute('href', url);
-  link.setAttribute('download', `${filename}.xls`);
+  link.setAttribute('download', `${filename}.xlsx`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -123,16 +130,10 @@ export function exportToPrintOrPdf<T = any>(
 ) {
   if (typeof window === 'undefined') return;
 
+  const isBn = getCurrentLanguage() === 'bn';
   const now = new Date();
-  const dateStr = now.toLocaleDateString('en-BD', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-  const timeStr = now.toLocaleTimeString('en-BD', {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  const dateStr = formatDate(now);
+  const timeStr = formatDateTime(now);
 
   const headersHtml = columns
     .map(
@@ -158,18 +159,26 @@ export function exportToPrintOrPdf<T = any>(
     })
     .join('');
 
+  const generatedLabel = isBn ? 'তৈরি করা হয়েছে:' : 'Generated:';
+  const totalRecordsLabel = isBn ? 'মোট রেকর্ড:' : 'Total Records:';
+  const systemTitle = isBn ? 'স্টকপাইলট ইনভেন্টরি ও বিক্রয় ব্যবস্থাপনা' : 'StockPilot Inventory & Sales Management System';
+  const confidentialLabel = isBn ? 'গোপনীয় ব্যবসায়িক তথ্য' : 'Confidential Business Data';
+
   const html = `<!DOCTYPE html>
-<html>
+<html lang="${isBn ? 'bn' : 'en'}">
 <head>
   <meta charset="utf-8" />
   <title>${escapeHtml(title)}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     @page {
       size: auto;
       margin: 12mm 14mm;
     }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-family: 'Hind Siliguri', 'Noto Sans Bengali', 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       margin: 0;
       padding: 0;
       color: #0f172a;
@@ -228,11 +237,11 @@ export function exportToPrintOrPdf<T = any>(
   <div class="report-header">
     <div>
       <h1 class="brand-title">${escapeHtml(title)}</h1>
-      <p class="brand-sub">${escapeHtml(subtitle || 'StockPilot Management & Operations Ledger')}</p>
+      <p class="brand-sub">${escapeHtml(subtitle || (isBn ? 'স্টকপাইলট ম্যানেজমেন্ট ও অপারেশনস লেজার' : 'StockPilot Management & Operations Ledger'))}</p>
     </div>
     <div class="meta-box">
-      <div>Generated: <strong>${dateStr} at ${timeStr}</strong></div>
-      <div>Total Records: <strong>${data.length}</strong></div>
+      <div>${generatedLabel} <strong>${timeStr}</strong></div>
+      <div>${totalRecordsLabel} <strong>${data.length}</strong></div>
     </div>
   </div>
 
@@ -246,8 +255,8 @@ export function exportToPrintOrPdf<T = any>(
   </table>
 
   <div class="report-footer">
-    <span>StockPilot Inventory & Sales Management System</span>
-    <span>Confidential Business Data</span>
+    <span>${systemTitle}</span>
+    <span>${confidentialLabel}</span>
   </div>
 </body>
 </html>`;

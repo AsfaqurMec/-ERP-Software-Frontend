@@ -508,7 +508,7 @@ export function DocumentForm({ mode }: { mode: Mode }) {
             />
           </FormField>
 
-          <FormField label={`${t('common.paid_amount')} (BDT)`}>
+          <FormField label={`${t('common.paid_amount')} (${t('common.bdt')})`}>
             <input
               type="number"
               min="0"

@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../components/auth-guard';
 import { Shell } from '../../../components/shell';
 import { api } from '../../../lib/api';
+import { useTranslation } from '../../../provider';
 import {
   CurrencyDisplay,
   LoadingSpinner,
@@ -27,6 +28,7 @@ import {
 } from 'lucide-react';
 
 export default function ReportsHubPage() {
+  const { t } = useTranslation();
   const [customFrom, setCustomFrom] = useState(
     new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10)
   );
@@ -39,44 +41,44 @@ export default function ReportsHubPage() {
 
   const reportLinks = [
     {
-      title: 'Daily Operational Report',
-      desc: "Today's sales revenue, procurement expenses, stock count changes and cash collections.",
+      title: t('reports.daily_title'),
+      desc: t('reports.daily_desc'),
       href: '/dashboard/reports/daily',
       icon: <Calendar color="#5068e6" size={24} />,
     },
     {
-      title: 'Monthly Statement & Trends',
-      desc: 'Monthly revenue, gross margins, operating expenses, customer counts and daily trend curves.',
+      title: t('reports.monthly_title'),
+      desc: t('reports.monthly_desc'),
       href: '/dashboard/reports/monthly',
       icon: <CalendarDays color="#28a476" size={24} />,
     },
     {
-      title: 'Yearly Annual Performance',
-      desc: 'Annual business performance, annual revenue, COGS and monthly comparison charts.',
+      title: t('reports.yearly_title'),
+      desc: t('reports.yearly_desc'),
       href: '/dashboard/reports/yearly',
       icon: <CalendarRange color="#d28d2b" size={24} />,
     },
     {
-      title: 'Sales & Revenue Report',
-      desc: 'Detailed breakdown of confirmed invoices, line item volume and customer accounts.',
+      title: t('reports.sales_title'),
+      desc: t('reports.sales_desc'),
       href: '/dashboard/reports/sales',
       icon: <ShoppingCart color="#5068e6" size={24} />,
     },
     {
-      title: 'Procurement & Purchases Report',
-      desc: 'Inward purchase orders, supplier fulfillment volume and procurement cost audits.',
+      title: t('reports.purchases_title'),
+      desc: t('reports.purchases_desc'),
       href: '/dashboard/reports/purchases',
       icon: <PackagePlus color="#d28d2b" size={24} />,
     },
     {
-      title: 'Profit & Loss Statement (P&L)',
-      desc: 'Gross revenue, inventory COGS, operational expenses and bottom-line net profit.',
+      title: t('reports.profit_title'),
+      desc: t('reports.profit_desc'),
       href: '/dashboard/reports/profit',
       icon: <TrendingUp color="#28a476" size={24} />,
     },
     {
-      title: 'Inventory Valuation Report',
-      desc: 'Asset valuations by Weighted Average Cost (WAC), reorder alerts and stock quantities.',
+      title: t('reports.inventory_title'),
+      desc: t('reports.inventory_desc'),
       href: '/dashboard/reports/inventory',
       icon: <Boxes color="#5068e6" size={24} />,
     },
@@ -87,9 +89,9 @@ export default function ReportsHubPage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title="Management Reports Hub"
-            description="Comprehensive financial reporting, performance statements, and executive summaries."
-            breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Reports' }]}
+            title={t('reports.title')}
+            description={t('reports.description')}
+            breadcrumbs={[{ label: t('common.dashboard'), href: '/dashboard' }, { label: t('reports.title') }]}
           />
 
           {/* Quick Nav Cards */}
@@ -128,8 +130,8 @@ export default function ReportsHubPage() {
           <section className="card">
             <div className="card-head">
               <div>
-                <h3>Period Summary Overview</h3>
-                <p>Filter custom reporting intervals to review financial performance</p>
+                <h3>{t('reports.period_summary')}</h3>
+                <p>{t('reports.period_summary_desc')}</p>
               </div>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                 <input
@@ -138,7 +140,7 @@ export default function ReportsHubPage() {
                   onChange={(e) => setCustomFrom(e.target.value)}
                   style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}
                 />
-                <span style={{ color: '#94a3b8' }}>to</span>
+                <span style={{ color: '#94a3b8' }}>{t('reports.to_date')}</span>
                 <input
                   type="date"
                   value={customTo}
@@ -149,34 +151,34 @@ export default function ReportsHubPage() {
             </div>
 
             {reportQuery.isLoading ? (
-              <LoadingSpinner label="Aggregating period metrics…" />
+              <LoadingSpinner label={t('common.loading')} />
             ) : reportQuery.error ? (
               <ErrorState message={reportQuery.error.message} onRetry={() => reportQuery.refetch()} />
             ) : (
               <>
                 <StatCardGrid columns={4}>
                   <StatCard
-                    label="Sales Revenue"
+                    label={t('reports.sales_revenue')}
                     value={<CurrencyDisplay value={reportQuery.data.sales.revenue} />}
-                    detail={`${reportQuery.data.sales.orders} orders`}
+                    detail={`${reportQuery.data.sales.orders} ${t('sales.orders')}`}
                     kind="blue"
                   />
                   <StatCard
-                    label="Cost of Goods (COGS)"
+                    label={t('reports.cogs')}
                     value={<CurrencyDisplay value={reportQuery.data.sales.cogs} />}
-                    detail="Inventory cost of sales"
+                    detail={t('reports.cogs_detail')}
                     kind="amber"
                   />
                   <StatCard
-                    label="Gross Operating Margin"
+                    label={t('reports.gross_profit')}
                     value={<CurrencyDisplay value={reportQuery.data.profit.grossProfit} />}
-                    detail="Revenue minus COGS"
+                    detail={t('reports.gross_profit_detail')}
                     kind="green"
                   />
                   <StatCard
-                    label="Net Operating Margin"
+                    label={t('reports.net_profit')}
                     value={<CurrencyDisplay value={reportQuery.data.profit.netProfit} />}
-                    detail="After operational expenses"
+                    detail={t('reports.net_profit_detail')}
                     kind={Number(reportQuery.data.profit.netProfit) >= 0 ? 'green' : 'rose'}
                   />
                 </StatCardGrid>

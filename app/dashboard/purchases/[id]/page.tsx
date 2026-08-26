@@ -21,8 +21,10 @@ import {
   FormField,
 } from '../../../../components/ui';
 import { Coins, CheckCircle2 } from 'lucide-react';
+import { useTranslation } from '../../../../provider';
 
 export default function PurchaseDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
 
@@ -60,7 +62,7 @@ export default function PurchaseDetailPage() {
   async function handleRecordPayment(e: FormEvent) {
     e.preventDefault();
     if (!payAmount || Number(payAmount) <= 0) {
-      setPayError('Payment amount must be greater than zero.');
+      setPayError(t('payments.amount_greater_zero'));
       return;
     }
 
@@ -105,7 +107,7 @@ export default function PurchaseDetailPage() {
     return (
       <AuthGuard>
         <Shell>
-          <LoadingSpinner label="Loading purchase order specifications…" />
+          <LoadingSpinner label={t('common.loading')} />
         </Shell>
       </AuthGuard>
     );
@@ -129,11 +131,11 @@ export default function PurchaseDetailPage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title={`Purchase Order: ${p.purchaseNumber}`}
-            description={`Supplier: ${p.supplier?.name} ${p.supplier?.company ? `(${p.supplier.company})` : ''}`}
+            title={`${t('purchases.purchase_number')}: ${p.purchaseNumber}`}
+            description={`${t('purchases.supplier')}: ${p.supplier?.name} ${p.supplier?.company ? `(${p.supplier.company})` : ''}`}
             breadcrumbs={[
-              { label: 'Dashboard', href: '/dashboard' },
-              { label: 'Purchases', href: '/dashboard/purchases' },
+              { label: t('common.dashboard'), href: '/dashboard' },
+              { label: t('purchases.title'), href: '/dashboard/purchases' },
               { label: p.purchaseNumber },
             ]}
             action={
@@ -145,17 +147,17 @@ export default function PurchaseDetailPage() {
                     onClick={openPayModal}
                     style={{ display: 'flex', alignItems: 'center', gap: 6 }}
                   >
-                    <Coins size={16} /> Pay Due Amount
+                    <Coins size={16} /> {t('payments.pay_due_title')}
                   </button>
                 )}
                 {p.status === 'DRAFT' && (
                   <button type="button" className="ghost" style={{ color: '#ef4444' }} onClick={() => setCancelOpen(true)}>
-                    Cancel Draft
+                    {t('common.cancel')}
                   </button>
                 )}
                 {p.status === 'CONFIRMED' && (
                   <Link className="ghost" href={`/dashboard/inventory/movements`}>
-                    View Stock Receipts
+                    {t('inventory.stock_movements')}
                   </Link>
                 )}
               </div>
@@ -165,46 +167,46 @@ export default function PurchaseDetailPage() {
           {/* Details Grid */}
           <div className="detail-grid">
             <section className="card">
-              <h3>Order Information</h3>
+              <h3>{t('documents.purchase_details')}</h3>
               <dl>
-                <dt>Purchase Number</dt>
+                <dt>{t('purchases.purchase_number')}</dt>
                 <dd>
                   <code>{p.purchaseNumber}</code>
                 </dd>
 
-                <dt>Supplier Name</dt>
+                <dt>{t('purchases.supplier')}</dt>
                 <dd>
                   <Link href={`/dashboard/suppliers/${p.supplier.id}`} style={{ color: '#5068e6' }}>
                     {p.supplier.name}
                   </Link>
                 </dd>
 
-                <dt>Supplier Invoice Ref</dt>
+                <dt>{t('documents.supplier_invoice_ref')}</dt>
                 <dd>{p.invoiceNumber || '—'}</dd>
 
-                <dt>Order Date</dt>
+                <dt>{t('common.date')}</dt>
                 <dd>
                   <DateDisplay value={p.purchaseDate} />
                 </dd>
 
-                <dt>Document Status</dt>
+                <dt>{t('common.status')}</dt>
                 <dd>
                   <StatusBadge value={p.status} />
                 </dd>
 
-                <dt>Payment Status</dt>
+                <dt>{t('purchases.payment_status')}</dt>
                 <dd>
                   <PaymentStatusBadge value={p.paymentStatus} />
                 </dd>
 
-                <dt>Payment Method</dt>
+                <dt>{t('common.payment_method')}</dt>
                 <dd>{p.paymentMethod || '—'}</dd>
               </dl>
             </section>
 
             <section className="card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                <h3 style={{ margin: 0 }}>Financial Breakdown</h3>
+                <h3 style={{ margin: 0 }}>{t('reports.period_summary')}</h3>
                 {hasDue && (
                   <button
                     type="button"
@@ -220,44 +222,44 @@ export default function PurchaseDetailPage() {
                       cursor: 'pointer',
                     }}
                   >
-                    + Pay Due
+                    + {t('payments.pay_due_title')}
                   </button>
                 )}
               </div>
               <dl>
-                <dt>Items Subtotal</dt>
+                <dt>{t('common.subtotal')}</dt>
                 <dd>
                   <CurrencyDisplay value={p.subtotal} />
                 </dd>
 
-                <dt>Document Discount (-)</dt>
+                <dt>{t('common.discount')} (-)</dt>
                 <dd>
                   <CurrencyDisplay value={p.discount} />
                 </dd>
 
-                <dt>Tax (+)</dt>
+                <dt>{t('common.tax')} (+)</dt>
                 <dd>
                   <CurrencyDisplay value={p.tax} />
                 </dd>
 
-                <dt>Shipping / Freight (+)</dt>
+                <dt>{t('documents.shipping_charge')} (+)</dt>
                 <dd>
                   <CurrencyDisplay value={p.shipping} />
                 </dd>
 
-                <dt>Grand Total</dt>
+                <dt>{t('purchases.grand_total')}</dt>
                 <dd>
                   <strong style={{ fontSize: 16 }}>
                     <CurrencyDisplay value={p.grandTotal} />
                   </strong>
                 </dd>
 
-                <dt>Paid Amount</dt>
+                <dt>{t('purchases.paid_amount')}</dt>
                 <dd style={{ color: '#188b64', fontWeight: 600 }}>
                   <CurrencyDisplay value={p.paidAmount} />
                 </dd>
 
-                <dt>Outstanding Due</dt>
+                <dt>{t('purchases.due_amount')}</dt>
                 <dd style={{ color: Number(p.dueAmount) > 0 ? '#ef4444' : '#188b64', fontWeight: 700 }}>
                   <CurrencyDisplay value={p.dueAmount} />
                 </dd>
@@ -269,11 +271,22 @@ export default function PurchaseDetailPage() {
           <section className="card">
             <div className="card-head">
               <div>
-                <h3>Purchased Items</h3>
-                <p>Line item breakdown with tax and discounts</p>
+                <h3>{t('products.title')}</h3>
+                <p>{t('documents.line_items')}</p>
               </div>
             </div>
-            <DataTable columns={['Product', 'SKU', 'Quantity', 'Unit Cost', 'Discount', 'Tax', 'Subtotal', 'Total']}>
+            <DataTable
+              columns={[
+                t('products.name'),
+                t('products.sku'),
+                t('documents.qty'),
+                t('documents.unit_cost'),
+                t('common.discount'),
+                t('common.tax'),
+                t('common.subtotal'),
+                t('common.grand_total'),
+              ]}
+            >
               {p.items.map((i: any) => (
                 <tr key={i.id}>
                   <td>
@@ -314,11 +327,19 @@ export default function PurchaseDetailPage() {
             <section className="card">
               <div className="card-head">
                 <div>
-                  <h3>Recorded Payment Receipts</h3>
-                  <p>Payments applied to this purchase</p>
+                  <h3>{t('payments.supplier_disbursements')}</h3>
+                  <p>{t('payments.title')}</p>
                 </div>
               </div>
-              <DataTable columns={['Date', 'Amount', 'Payment Method', 'Reference', 'Notes']}>
+              <DataTable
+                columns={[
+                  t('common.date'),
+                  t('common.amount'),
+                  t('common.payment_method'),
+                  t('activity_logs.reference'),
+                  t('common.description'),
+                ]}
+              >
                 {p.payments.map((pm: any) => (
                   <tr key={pm.id}>
                     <td>
@@ -342,7 +363,7 @@ export default function PurchaseDetailPage() {
 
           {p.notes && (
             <section className="card">
-              <h3>Document Notes</h3>
+              <h3>{t('documents.internal_notes')}</h3>
               <p style={{ color: '#555e75', margin: 0 }}>{p.notes}</p>
             </section>
           )}
@@ -351,23 +372,23 @@ export default function PurchaseDetailPage() {
           {payModalOpen && (
             <div className="dialog-backdrop">
               <div className="dialog" style={{ width: 'min(100%, 500px)' }}>
-                <h3>Pay Purchase Due</h3>
+                <h3>{t('payments.pay_due_title')}</h3>
                 <p style={{ margin: '4px 0 16px', fontSize: 13, color: '#64748b' }}>
-                  Record a payment disbursement to <strong>{p.supplier.name}</strong> for Purchase #{p.purchaseNumber}.
+                  {p.supplier.name} · {p.purchaseNumber}
                 </p>
 
                 <form onSubmit={handleRecordPayment} style={{ display: 'grid', gap: 14 }}>
                   <div style={{ padding: 12, background: '#f8fafc', borderRadius: 8, fontSize: 13, border: '1px solid #e2e8f0' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <span style={{ color: '#64748b' }}>Purchase Order:</span>
+                      <span style={{ color: '#64748b' }}>{t('purchases.purchase_number')}:</span>
                       <strong>{p.purchaseNumber}</strong>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <span style={{ color: '#64748b' }}>Supplier:</span>
+                      <span style={{ color: '#64748b' }}>{t('purchases.supplier')}:</span>
                       <strong>{p.supplier.name}</strong>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ color: '#64748b' }}>Current Purchase Due:</span>
+                      <span style={{ color: '#64748b' }}>{t('purchases.due_amount')}:</span>
                       <strong style={{ color: '#ef4444', fontSize: 15 }}>
                         <CurrencyDisplay value={p.dueAmount} />
                       </strong>
@@ -375,7 +396,7 @@ export default function PurchaseDetailPage() {
                   </div>
 
                   <div className="form-grid">
-                    <FormField label="Amount to Pay (BDT)" required>
+                    <FormField label={`${t('common.amount')} (${t('common.bdt')})`} required>
                       <input
                         required
                         min="0.01"
@@ -387,11 +408,21 @@ export default function PurchaseDetailPage() {
                       />
                     </FormField>
 
-                    <FormField label="Payment Method" required>
+                    <FormField label={t('common.payment_method')} required>
                       <select value={payMethod} onChange={(e) => setPayMethod(e.target.value)}>
                         {['CASH', 'BANK', 'BKASH', 'NAGAD', 'CARD', 'OTHER'].map((m) => (
                           <option key={m} value={m}>
-                            {m}
+                            {m === 'CASH'
+                              ? t('common.cash')
+                              : m === 'BANK'
+                              ? t('common.bank')
+                              : m === 'BKASH'
+                              ? t('common.bkash')
+                              : m === 'NAGAD'
+                              ? t('common.nagad')
+                              : m === 'CARD'
+                              ? t('common.card')
+                              : t('common.other')}
                           </option>
                         ))}
                       </select>
@@ -399,7 +430,7 @@ export default function PurchaseDetailPage() {
                   </div>
 
                   <div className="form-grid">
-                    <FormField label="Payment Date & Time" required>
+                    <FormField label={t('common.date')} required>
                       <input
                         required
                         type="datetime-local"
@@ -408,7 +439,7 @@ export default function PurchaseDetailPage() {
                       />
                     </FormField>
 
-                    <FormField label="Transaction / Cheque Reference">
+                    <FormField label={t('activity_logs.reference')}>
                       <input
                         value={payReference}
                         onChange={(e) => setPayReference(e.target.value)}
@@ -417,11 +448,11 @@ export default function PurchaseDetailPage() {
                     </FormField>
                   </div>
 
-                  <FormField label="Notes">
+                  <FormField label={t('common.description')}>
                     <textarea
                       value={payNote}
                       onChange={(e) => setPayNote(e.target.value)}
-                      placeholder="Optional notes or remarks…"
+                      placeholder={t('common.description')}
                       style={{ minHeight: 60 }}
                     />
                   </FormField>
@@ -430,10 +461,10 @@ export default function PurchaseDetailPage() {
 
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 8 }}>
                     <button type="button" onClick={() => setPayModalOpen(false)}>
-                      Cancel
+                      {t('common.cancel')}
                     </button>
                     <button type="submit" className="primary-button" disabled={paySaving}>
-                      {paySaving ? 'Recording…' : 'Confirm Payment'}
+                      {paySaving ? t('common.saving') : t('payments.pay_due_title')}
                     </button>
                   </div>
                 </form>
@@ -444,13 +475,13 @@ export default function PurchaseDetailPage() {
           {/* Confirm Cancel Dialog */}
           <ConfirmDialog
             open={cancelOpen}
-            title="Cancel Draft Purchase"
+            title={t('common.cancel')}
             danger={true}
-            confirmLabel={cancelling ? 'Cancelling…' : 'Yes, Cancel Order'}
+            confirmLabel={cancelling ? t('common.loading') : t('status.cancelled')}
             onConfirm={handleCancel}
             onCancel={() => setCancelOpen(false)}
           >
-            Are you sure you want to cancel this draft purchase order? This action cannot be undone.
+            {t('common.delete_confirm')}
           </ConfirmDialog>
         </PageContainer>
       </Shell>

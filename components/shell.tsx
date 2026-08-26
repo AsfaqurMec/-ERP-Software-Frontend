@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
@@ -30,6 +30,8 @@ import {
   Menu,
   Package,
   PackagePlus,
+  PanelLeftClose,
+  PanelLeftOpen,
   PlusCircle,
   ReceiptText,
   RotateCcw,
@@ -175,6 +177,9 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation();
   const [user, setUser] = useState<{ name: string; email: string; role: string; avatar?: string | null } | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [hoveredSection, setHoveredSection] = useState<{ id: string; top: number } | null>(null);
+  const flyoutTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Determine initial open accordion states based on current route
   const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
@@ -212,10 +217,40 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
       if (stored) {
         setUser(JSON.parse(stored));
       }
+      const savedCollapse = localStorage.getItem('sidebar_collapsed');
+      if (savedCollapse !== null) {
+        setIsCollapsed(savedCollapse === 'true');
+      }
     } catch {
       // ignore
     }
   }, []);
+
+  const toggleCollapse = useCallback(() => {
+    setIsCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('sidebar_collapsed', String(next));
+      } catch {}
+      return next;
+    });
+  }, []);
+
+  // Keyboard shortcut Ctrl+B or Cmd+B to toggle collapse
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+        const target = e.target as HTMLElement;
+        if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+          return;
+        }
+        e.preventDefault();
+        toggleCollapse();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [toggleCollapse]);
 
   // Auto-expand accordion when route changes
   useEffect(() => {
@@ -225,11 +260,38 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
       }
     }
     setMobileMenuOpen(false);
+    setHoveredSection(null);
   }, [path]);
 
   function toggleSection(sectionId: string) {
     setOpenSections((prev) => ({ ...prev, [sectionId]: !prev[sectionId] }));
   }
+
+  const handleSectionMouseEnter = (sectionId: string, e: React.MouseEvent<HTMLElement>) => {
+    if (!isCollapsed) return;
+    if (flyoutTimerRef.current) clearTimeout(flyoutTimerRef.current);
+    const rect = e.currentTarget.getBoundingClientRect();
+    setHoveredSection({ id: sectionId, top: rect.top });
+  };
+
+  const handleSectionMouseLeave = () => {
+    if (!isCollapsed) return;
+    if (flyoutTimerRef.current) clearTimeout(flyoutTimerRef.current);
+    flyoutTimerRef.current = setTimeout(() => {
+      setHoveredSection(null);
+    }, 120);
+  };
+
+  const handleFlyoutMouseEnter = () => {
+    if (flyoutTimerRef.current) clearTimeout(flyoutTimerRef.current);
+  };
+
+  const handleFlyoutMouseLeave = () => {
+    if (flyoutTimerRef.current) clearTimeout(flyoutTimerRef.current);
+    flyoutTimerRef.current = setTimeout(() => {
+      setHoveredSection(null);
+    }, 120);
+  };
 
   function handleLogout() {
     localStorage.removeItem('token');
@@ -249,19 +311,20 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
   }).toUpperCase();
 
   // Find active item title
-  let activeTitle = 'Dashboard';
+  let activeTitle = t('common.dashboard');
   for (const section of navSections) {
     const found = section.subItems?.find((sub) =>
       sub.href === '/dashboard' ? path === '/dashboard' : path === sub.href || (sub.href !== '/dashboard/reports' && path.startsWith(sub.href))
     );
     if (found) {
-      activeTitle = found.name.replace(/^\+\s*/, '');
+      const rawTitle = found.nameKey ? t(found.nameKey) : found.name;
+      activeTitle = rawTitle.replace(/^\+\s*/, '');
       break;
     }
   }
 
   return (
-    <div className="app">
+    <div className={`app ${isCollapsed ? 'collapsed' : ''}`}>
       {/* Mobile Drawer Overlay */}
       {mobileMenuOpen && (
         <div
@@ -275,10 +338,11 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
         />
       )}
 
-      {/* Modern Accordion Sidebar */}
+      {/* Modern Collapsible Accordion Sidebar */}
       <aside
         style={{
-          width: 270,
+          width: isCollapsed ? 72 : 270,
+          minWidth: isCollapsed ? 72 : 270,
           background: 'linear-gradient(180deg, #131728 0%, #181d33 100%)',
           color: '#b4bbd5',
           display: 'flex',
@@ -290,17 +354,23 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
           zIndex: 100,
           borderRight: '1px solid rgba(255,255,255,0.06)',
           transform: mobileMenuOpen ? 'translateX(0)' : undefined,
-          transition: 'transform 0.2s ease',
+          transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          overflowX: 'hidden',
         }}
       >
         {/* Brand Header */}
         <div
           style={{
-            padding: '20px 18px 16px',
+            padding: isCollapsed ? '14px 10px 12px' : '18px 14px 15px',
             display: 'flex',
+            flexDirection: isCollapsed ? 'column' : 'row',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            justifyContent: isCollapsed ? 'center' : 'space-between',
+            gap: isCollapsed ? 10 : 8,
             borderBottom: '1px solid rgba(255,255,255,0.06)',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            minHeight: isCollapsed ? 92 : 70,
+            boxSizing: 'border-box',
           }}
         >
           <Link
@@ -312,6 +382,8 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
               alignItems: 'center',
               gap: 10,
               padding: 0,
+              minWidth: 0,
+              overflow: 'hidden',
             }}
           >
             {settings?.business_logo ? (
@@ -319,26 +391,27 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
                 src={settings.business_logo}
                 alt={settings?.business_name || 'Logo'}
                 style={{
-                  width: 50,
-                  height: 50,
-                  borderRadius: 0,
+                  width: 38,
+                  height: 38,
+                  borderRadius: 8,
                   objectFit: 'cover',
                   padding: 0,
                   flexShrink: 0,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
                 }}
               />
             ) : (
               <span
                 style={{
-                  width: 50,
-                  height: 50,
-                  borderRadius: 0,
+                  width: 38,
+                  height: 38,
+                  borderRadius: 8,
                   background: 'linear-gradient(135deg, #6366f1 0%, #4338ca 100%)',
                   color: '#fff',
                   display: 'grid',
                   placeItems: 'center',
                   fontWeight: 800,
-                  fontSize: 18,
+                  fontSize: 15,
                   boxShadow: '0 4px 12px rgba(99, 102, 241, 0.35)',
                   flexShrink: 0,
                   padding: 0,
@@ -347,44 +420,97 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
                 {settings?.business_name ? settings.business_name.substring(0, 2).toUpperCase() : 'SP'}
               </span>
             )}
-            <div style={{ overflow: 'hidden' }}>
-              <div style={{ font: '800 17px Manrope, sans-serif', color: '#ffffff', letterSpacing: '-0.3px', lineHeight: 1.15, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+            <div
+              style={{
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                maxWidth: isCollapsed ? 0 : 135,
+                opacity: isCollapsed ? 0 : 1,
+                transform: isCollapsed ? 'translateX(-10px)' : 'translateX(0)',
+                transition: 'max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, transform 0.2s ease',
+                pointerEvents: isCollapsed ? 'none' : 'auto',
+              }}
+            >
+              <div style={{ font: '800 16px Manrope, sans-serif', color: '#ffffff', letterSpacing: '-0.3px', lineHeight: 1.15, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
                 {settings?.business_name || 'StockPilot'}
               </div>
-              <small style={{ font: '700 9px Manrope, sans-serif', letterSpacing: '1.4px', color: '#6366f1', display: 'block', marginTop: 2 }}>
+              <small style={{ font: '700 8.5px Manrope, sans-serif', letterSpacing: '1.2px', color: '#818cf8', display: 'block', marginTop: 2, whiteSpace: 'nowrap' }}>
                 {t('nav.enterprise_erp')}
               </small>
             </div>
           </Link>
-          {mobileMenuOpen && (
+
+          {/* Sidebar-Only Collapse / Expand Toggle Button */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
             <button
               type="button"
-              onClick={() => setMobileMenuOpen(false)}
-              style={{ background: 'transparent', border: 0, color: '#94a3b8', cursor: 'pointer' }}
+              onClick={toggleCollapse}
+              title={isCollapsed ? 'Expand sidebar (Ctrl+B)' : 'Collapse sidebar (Ctrl+B)'}
+              style={{
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                color: '#cbd5e1',
+                cursor: 'pointer',
+                width: isCollapsed ? 34 : 30,
+                height: isCollapsed ? 34 : 30,
+                borderRadius: 7,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                flexShrink: 0,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = '#ffffff';
+                e.currentTarget.style.background = 'rgba(99,102,241,0.25)';
+                e.currentTarget.style.borderColor = 'rgba(99,102,241,0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = '#cbd5e1';
+                e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+              }}
             >
-              <X size={20} />
+              {isCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
             </button>
-          )}
+
+            {mobileMenuOpen && (
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(false)}
+                style={{ background: 'transparent', border: 0, color: '#94a3b8', cursor: 'pointer', padding: 4 }}
+              >
+                <X size={20} />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Workspace Selector */}
-        <div style={{ padding: '14px 14px 8px' }}>
+        <div
+          style={{
+            padding: isCollapsed ? '8px 10px 4px' : '12px 14px 8px',
+            transition: 'padding 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
+        >
           <div
+            title={`${t('nav.main_headquarters')} - ${t('status.active')}`}
             style={{
               background: 'rgba(255,255,255,0.03)',
               border: '1px solid rgba(255,255,255,0.07)',
               borderRadius: 8,
-              padding: '8px 10px',
+              padding: isCollapsed ? '7px 0' : '8px 10px',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between',
+              justifyContent: isCollapsed ? 'center' : 'space-between',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div
                 style={{
-                  width: 22,
-                  height: 22,
+                  width: 24,
+                  height: 24,
                   borderRadius: 6,
                   background: 'rgba(99,102,241,0.2)',
                   color: '#818cf8',
@@ -392,17 +518,57 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
                   placeItems: 'center',
                   fontSize: 10,
                   fontWeight: 700,
+                  flexShrink: 0,
+                  position: 'relative',
                 }}
               >
                 NT
+                {isCollapsed && (
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: -1,
+                      right: -1,
+                      width: 5,
+                      height: 5,
+                      borderRadius: '50%',
+                      background: '#4ade80',
+                      boxShadow: '0 0 6px #4ade80',
+                    }}
+                  />
+                )}
               </div>
-              <div>
+              <div
+                style={{
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  maxWidth: isCollapsed ? 0 : 130,
+                  opacity: isCollapsed ? 0 : 1,
+                  transform: isCollapsed ? 'translateX(-8px)' : 'translateX(0)',
+                  transition: 'max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, transform 0.2s ease',
+                  pointerEvents: isCollapsed ? 'none' : 'auto',
+                }}
+              >
                 <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#f1f5f9', lineHeight: 1.1 }}>{t('nav.main_headquarters')}</div>
                 <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{t('nav.all_branches')}</div>
               </div>
             </div>
-            <span style={{ fontSize: '0.65rem', background: 'rgba(34,197,94,0.15)', color: '#4ade80', padding: '2px 6px', borderRadius: 4, fontWeight: 700 }}>
-              ACTIVE
+            <span
+              style={{
+                fontSize: '0.65rem',
+                background: 'rgba(34,197,94,0.15)',
+                color: '#4ade80',
+                padding: isCollapsed ? 0 : '2px 6px',
+                borderRadius: 4,
+                fontWeight: 700,
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                maxWidth: isCollapsed ? 0 : 60,
+                opacity: isCollapsed ? 0 : 1,
+                transition: 'max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, padding 0.3s ease',
+              }}
+            >
+              {t('status.active')}
             </span>
           </div>
         </div>
@@ -412,10 +578,12 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
           style={{
             flex: 1,
             overflowY: 'auto',
-            padding: '8px 10px',
+            overflowX: 'hidden',
+            padding: isCollapsed ? '8px 8px' : '8px 10px',
             display: 'flex',
             flexDirection: 'column',
             gap: 4,
+            transition: 'padding 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           }}
         >
           {navSections.map((section) => {
@@ -428,35 +596,98 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
             );
 
             const sectionLabel = section.labelKey ? t(section.labelKey) : section.label;
+            const isFlyoutOpen = hoveredSection?.id === section.id;
 
             return (
-              <div key={section.id} style={{ marginBottom: 2 }}>
-                {/* Accordion Header */}
+              <div
+                key={section.id}
+                onMouseEnter={(e) => handleSectionMouseEnter(section.id, e)}
+                onMouseLeave={handleSectionMouseLeave}
+                style={{ position: 'relative', marginBottom: 2 }}
+              >
+                {/* Accordion / Nav Header Button */}
                 <button
                   type="button"
-                  onClick={() => toggleSection(section.id)}
+                  onClick={() => {
+                    if (isCollapsed) {
+                      const target = section.subItems?.[0]?.href || '/dashboard';
+                      router.push(target);
+                    } else {
+                      toggleSection(section.id);
+                    }
+                  }}
+                  title={isCollapsed ? sectionLabel : undefined}
                   style={{
                     width: '100%',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '8px 10px',
-                    borderRadius: 7,
-                    background: hasActiveChild ? 'rgba(99,102,241,0.12)' : isOpen ? 'rgba(255,255,255,0.04)' : 'transparent',
-                    border: 0,
+                    justifyContent: isCollapsed ? 'center' : 'space-between',
+                    padding: isCollapsed ? '10px 0' : '8px 10px',
+                    borderRadius: 8,
+                    background: hasActiveChild
+                      ? isCollapsed
+                        ? 'rgba(99,102,241,0.22)'
+                        : 'rgba(99,102,241,0.12)'
+                      : isOpen && !isCollapsed
+                      ? 'rgba(255,255,255,0.04)'
+                      : isFlyoutOpen && isCollapsed
+                      ? 'rgba(255,255,255,0.06)'
+                      : 'transparent',
+                    border: isCollapsed && hasActiveChild ? '1px solid rgba(129,140,248,0.35)' : '1px solid transparent',
                     color: hasActiveChild ? '#ffffff' : '#cbd5e1',
                     fontSize: '0.84rem',
                     fontWeight: hasActiveChild ? 700 : 600,
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
+                    transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
                     textAlign: 'left',
+                    position: 'relative',
+                    boxShadow: isCollapsed && hasActiveChild ? '0 0 12px rgba(99,102,241,0.25)' : 'none',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                    <SectionIcon size={16} color={hasActiveChild ? '#818cf8' : '#94a3b8'} />
-                    <span>{sectionLabel}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <SectionIcon size={18} color={hasActiveChild ? '#818cf8' : '#94a3b8'} />
+                      {isCollapsed && section.id === 'overview' && totalAlertsCount > 0 && (
+                        <span
+                          style={{
+                            position: 'absolute',
+                            top: -4,
+                            right: -4,
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            background: criticalAlertsCount > 0 ? '#ef4444' : '#f59e0b',
+                            border: '1.5px solid #131728',
+                          }}
+                        />
+                      )}
+                    </div>
+                    <span
+                      style={{
+                        overflow: 'hidden',
+                        whiteSpace: 'nowrap',
+                        maxWidth: isCollapsed ? 0 : 160,
+                        opacity: isCollapsed ? 0 : 1,
+                        transform: isCollapsed ? 'translateX(-8px)' : 'translateX(0)',
+                        transition: 'max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, transform 0.2s ease',
+                      }}
+                    >
+                      {sectionLabel}
+                    </span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      maxWidth: isCollapsed ? 0 : 60,
+                      opacity: isCollapsed ? 0 : 1,
+                      transition: 'max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease',
+                    }}
+                  >
                     {section.id === 'overview' && totalAlertsCount > 0 && (
                       <span
                         style={{
@@ -475,83 +706,88 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
                       size={14}
                       color="#64748b"
                       style={{
-                        transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                        transition: 'transform 0.2s ease',
+                        transform: isOpen && !isCollapsed ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.25s ease',
+                        flexShrink: 0,
                       }}
                     />
                   </div>
                 </button>
 
-                {/* Accordion Sub-items */}
-                {isOpen && (
-                  <div
-                    style={{
-                      marginTop: 2,
-                      marginLeft: 14,
-                      paddingLeft: 10,
-                      borderLeft: '1.5px solid rgba(255,255,255,0.08)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 1,
-                    }}
-                  >
-                    {section.subItems?.map((sub) => {
-                      const isSubActive =
-                        sub.href === '/dashboard'
-                          ? path === '/dashboard'
-                          : path === sub.href || (sub.href !== '/dashboard/reports' && sub.href !== '/dashboard/sales' && sub.href !== '/dashboard/purchases' && sub.href !== '/dashboard/products' && path.startsWith(sub.href));
+                {/* Accordion Sub-items (smooth max-height accordion) */}
+                <div
+                  style={{
+                    maxHeight: !isCollapsed && isOpen ? 400 : 0,
+                    opacity: !isCollapsed && isOpen ? 1 : 0,
+                    overflow: 'hidden',
+                    transition: 'max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease',
+                    marginLeft: 14,
+                    paddingLeft: 10,
+                    borderLeft: !isCollapsed && isOpen ? '1.5px solid rgba(255,255,255,0.08)' : '1.5px solid transparent',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1,
+                    marginTop: !isCollapsed && isOpen ? 2 : 0,
+                  }}
+                >
+                  {section.subItems?.map((sub) => {
+                    const isSubActive =
+                      sub.href === '/dashboard'
+                        ? path === '/dashboard'
+                        : path === sub.href || (sub.href !== '/dashboard/reports' && sub.href !== '/dashboard/sales' && sub.href !== '/dashboard/purchases' && sub.href !== '/dashboard/products' && path.startsWith(sub.href));
 
-                      const subTitle = sub.nameKey ? t(sub.nameKey) : sub.name;
-                      const isAction = sub.name.startsWith('+');
+                    const subTitle = sub.nameKey ? t(sub.nameKey) : sub.name;
+                    const isAction = sub.name.startsWith('+');
 
-                      return (
-                        <Link
-                          key={sub.href}
-                          href={sub.href}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '6px 8px',
-                            borderRadius: 6,
-                            textDecoration: 'none',
-                            fontSize: '0.78rem',
-                            fontWeight: isSubActive ? 700 : isAction ? 600 : 500,
-                            color: isSubActive ? '#ffffff' : isAction ? '#818cf8' : '#94a3b8',
-                            background: isSubActive ? 'linear-gradient(90deg, rgba(99,102,241,0.25) 0%, rgba(99,102,241,0.08) 100%)' : 'transparent',
-                            transition: 'all 0.12s ease',
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span
-                              style={{
-                                width: 4,
-                                height: 4,
-                                borderRadius: '50%',
-                                background: isSubActive ? '#818cf8' : 'rgba(255,255,255,0.2)',
-                              }}
-                            />
-                            <span>{subTitle}</span>
-                          </div>
-                          {sub.name.includes('Alerts') && totalAlertsCount > 0 && (
-                            <span
-                              style={{
-                                background: criticalAlertsCount > 0 ? '#ef4444' : '#f59e0b',
-                                color: '#fff',
-                                fontSize: '0.62rem',
-                                fontWeight: 700,
-                                padding: '1px 5px',
-                                borderRadius: 6,
-                              }}
-                            >
-                              {totalAlertsCount}
-                            </span>
-                          )}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                )}
+                    return (
+                      <Link
+                        key={sub.href}
+                        href={sub.href}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '6px 8px',
+                          borderRadius: 6,
+                          textDecoration: 'none',
+                          fontSize: '0.78rem',
+                          fontWeight: isSubActive ? 700 : isAction ? 600 : 500,
+                          color: isSubActive ? '#ffffff' : isAction ? '#818cf8' : '#94a3b8',
+                          background: isSubActive ? 'linear-gradient(90deg, rgba(99,102,241,0.25) 0%, rgba(99,102,241,0.08) 100%)' : 'transparent',
+                          transition: 'all 0.12s ease',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span
+                            style={{
+                              width: 4,
+                              height: 4,
+                              borderRadius: '50%',
+                              background: isSubActive ? '#818cf8' : 'rgba(255,255,255,0.2)',
+                              flexShrink: 0,
+                            }}
+                          />
+                          <span>{subTitle}</span>
+                        </div>
+                        {sub.name.includes('Alerts') && totalAlertsCount > 0 && (
+                          <span
+                            style={{
+                              background: criticalAlertsCount > 0 ? '#ef4444' : '#f59e0b',
+                              color: '#fff',
+                              fontSize: '0.62rem',
+                              fontWeight: 700,
+                              padding: '1px 5px',
+                              borderRadius: 6,
+                            }}
+                          >
+                            {totalAlertsCount}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
               </div>
             );
           })}
@@ -560,12 +796,15 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
         {/* User Session Drawer */}
         <div
           style={{
-            padding: '12px 14px',
+            padding: isCollapsed ? '12px 8px' : '12px 14px',
             borderTop: '1px solid rgba(255,255,255,0.06)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            justifyContent: isCollapsed ? 'center' : 'space-between',
             background: 'rgba(0,0,0,0.15)',
+            transition: 'padding 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            flexDirection: isCollapsed ? 'column' : 'row',
+            gap: isCollapsed ? 8 : 10,
           }}
         >
           <Link
@@ -575,10 +814,10 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
               alignItems: 'center',
               gap: 10,
               textDecoration: 'none',
-              flex: 1,
               minWidth: 0,
+              justifyContent: isCollapsed ? 'center' : 'flex-start',
             }}
-            title="View Profile & Security"
+            title={`${activeUser?.name || 'Administrator'} (${activeUser?.role || 'SUPER_ADMIN'})`}
           >
             {activeUser?.avatar ? (
               <img
@@ -613,7 +852,16 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
                 {activeUser?.name ? activeUser.name.slice(0, 2).toUpperCase() : 'AD'}
               </div>
             )}
-            <div style={{ overflow: 'hidden', minWidth: 0 }}>
+            <div
+              style={{
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                maxWidth: isCollapsed ? 0 : 120,
+                opacity: isCollapsed ? 0 : 1,
+                transform: isCollapsed ? 'translateX(-8px)' : 'translateX(0)',
+                transition: 'max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, transform 0.2s ease',
+              }}
+            >
               <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#f8fafc', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {activeUser?.name || 'Administrator'}
               </div>
@@ -622,7 +870,16 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
               </div>
             </div>
           </Link>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              flexDirection: isCollapsed ? 'column' : 'row',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            }}
+          >
             <LanguageSwitcher variant="dark" showLabel={false} />
             <button
               type="button"
@@ -638,6 +895,15 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = '#ef4444';
+                e.currentTarget.style.background = 'rgba(239,68,68,0.15)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = '#94a3b8';
+                e.currentTarget.style.background = 'transparent';
               }}
             >
               <LogOut size={16} />
@@ -646,8 +912,142 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
+      {/* Interactive Flyout Popover for Collapsed Navigation */}
+      {isCollapsed && hoveredSection && (() => {
+        const section = navSections.find((s) => s.id === hoveredSection.id);
+        if (!section) return null;
+        const sectionLabel = section.labelKey ? t(section.labelKey) : section.label;
+        const SectionIcon = section.icon;
+
+        return (
+          <div
+            className="nav-flyout-menu"
+            onMouseEnter={handleFlyoutMouseEnter}
+            onMouseLeave={handleFlyoutMouseLeave}
+            style={{
+              position: 'fixed',
+              left: 78,
+              top: Math.max(12, Math.min(typeof window !== 'undefined' ? window.innerHeight - 380 : 500, hoveredSection.top - 6)),
+              background: 'linear-gradient(160deg, #191f37 0%, #121627 100%)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: 12,
+              boxShadow: '0 20px 45px -10px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.08)',
+              padding: '10px 8px',
+              minWidth: 220,
+              maxWidth: 260,
+              zIndex: 9999,
+            }}
+          >
+            {/* Flyout Title */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '4px 8px 10px',
+                borderBottom: '1px solid rgba(255,255,255,0.08)',
+                marginBottom: 6,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <SectionIcon size={16} color="#818cf8" />
+                <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#f8fafc' }}>
+                  {sectionLabel}
+                </span>
+              </div>
+              {section.id === 'overview' && totalAlertsCount > 0 && (
+                <span
+                  style={{
+                    background: criticalAlertsCount > 0 ? '#ef4444' : '#f59e0b',
+                    color: '#fff',
+                    fontSize: '0.62rem',
+                    fontWeight: 700,
+                    padding: '1px 5px',
+                    borderRadius: 6,
+                  }}
+                >
+                  {totalAlertsCount}
+                </span>
+              )}
+            </div>
+
+            {/* Flyout Sub-links */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {section.subItems?.map((sub) => {
+                const isSubActive =
+                  sub.href === '/dashboard'
+                    ? path === '/dashboard'
+                    : path === sub.href || (sub.href !== '/dashboard/reports' && sub.href !== '/dashboard/sales' && sub.href !== '/dashboard/purchases' && sub.href !== '/dashboard/products' && path.startsWith(sub.href));
+
+                const subTitle = sub.nameKey ? t(sub.nameKey) : sub.name;
+                const isAction = sub.name.startsWith('+');
+
+                return (
+                  <Link
+                    key={sub.href}
+                    href={sub.href}
+                    onClick={() => setHoveredSection(null)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '7px 10px',
+                      borderRadius: 7,
+                      textDecoration: 'none',
+                      fontSize: '0.8rem',
+                      fontWeight: isSubActive ? 700 : isAction ? 600 : 500,
+                      color: isSubActive ? '#ffffff' : isAction ? '#818cf8' : '#cbd5e1',
+                      background: isSubActive
+                        ? 'linear-gradient(90deg, rgba(99,102,241,0.3) 0%, rgba(99,102,241,0.1) 100%)'
+                        : 'transparent',
+                      transition: 'all 0.12s ease',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                      <span
+                        style={{
+                          width: 5,
+                          height: 5,
+                          borderRadius: '50%',
+                          background: isSubActive ? '#818cf8' : 'rgba(255,255,255,0.25)',
+                        }}
+                      />
+                      <span>{subTitle}</span>
+                    </div>
+                    {sub.name.includes('Alerts') && totalAlertsCount > 0 && (
+                      <span
+                        style={{
+                          background: criticalAlertsCount > 0 ? '#ef4444' : '#f59e0b',
+                          color: '#fff',
+                          fontSize: '0.62rem',
+                          fontWeight: 700,
+                          padding: '1px 5px',
+                          borderRadius: 6,
+                        }}
+                      >
+                        {totalAlertsCount}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Main Content Area */}
-      <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <main
+        style={{
+          marginLeft: isCollapsed ? 72 : 270,
+          width: isCollapsed ? 'calc(100% - 72px)' : 'calc(100% - 270px)',
+          maxWidth: isCollapsed ? 'calc(100% - 72px)' : 'calc(100% - 270px)',
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+      >
         <header
           style={{
             display: 'flex',
@@ -658,9 +1058,10 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            {/* Mobile Drawer Button */}
             <button
               type="button"
-              className="ghost"
+              className="ghost mobile-menu-btn"
               onClick={() => setMobileMenuOpen(true)}
               style={{
                 display: 'none',
@@ -670,6 +1071,7 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
             >
               <Menu size={18} />
             </button>
+
             <div>
               <p className="eyebrow" style={{ margin: '0 0 4px', fontSize: '0.68rem', letterSpacing: '0.1em' }}>
                 {currentDateStr}
@@ -820,4 +1222,6 @@ export function Shell({ children }: { children: React.ReactNode }) {
 }
 
 export const AppShell = Shell;
+
+
 

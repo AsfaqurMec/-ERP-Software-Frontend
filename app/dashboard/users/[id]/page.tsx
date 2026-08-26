@@ -8,8 +8,10 @@ import { api } from '../../../../lib/api';
 import { PageContainer, PageHeader } from '../../../../components/ui';
 import { User, Shield, Key, Edit, Calendar, Clock, Activity, CheckCircle2 } from 'lucide-react';
 import { usePermissions } from '../../../../hooks/use-auth';
+import { useTranslation } from '../../../../provider';
 
 export default function UserDetailPage() {
+  const { t } = useTranslation();
   const params = useParams();
   const id = params?.id as string;
   const { hasPermission } = usePermissions();
@@ -26,7 +28,7 @@ export default function UserDetailPage() {
     return (
       <PageContainer>
         <div className="skeleton" style={{ height: 300 }}>
-          Loading user profile...
+          {t('common.loading')}
         </div>
       </PageContainer>
     );
@@ -36,7 +38,7 @@ export default function UserDetailPage() {
     return (
       <PageContainer>
         <div className="card" style={{ padding: 32, textAlign: 'center' }}>
-          User not found.
+          {t('common.no_records_found')}
         </div>
       </PageContainer>
     );
@@ -48,18 +50,18 @@ export default function UserDetailPage() {
   return (
     <PageContainer>
       <PageHeader
-        title={`User: ${user.name}`}
-        description="Comprehensive employee profile, assigned access privileges, and audit history."
+        title={`${t('users.title')}: ${user.name}`}
+        description={t('users.users_directory_desc')}
         breadcrumbs={[
-          { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Users Directory', href: '/dashboard/users' },
+          { label: t('common.dashboard'), href: '/dashboard' },
+          { label: t('users.title'), href: '/dashboard/users' },
           { label: user.name },
         ]}
         action={
           canUpdateUser && (
             <Link href={`/dashboard/users/${user.id}/edit`} className="primary-button">
               <Edit size={15} style={{ marginRight: 6 }} />
-              Edit Account & Roles
+              {t('users.edit_user')}
             </Link>
           )
         }
@@ -100,7 +102,7 @@ export default function UserDetailPage() {
                   {user.roleName || user.role}
                 </span>
                 <span className={`pill ${user.status === 'ACTIVE' ? 'success' : ''}`}>
-                  {user.status}
+                  {user.status === 'ACTIVE' ? t('common.active') : t('common.inactive')}
                 </span>
               </div>
             </div>
@@ -108,21 +110,21 @@ export default function UserDetailPage() {
 
           <dl style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, margin: 0, fontSize: '0.88rem' }}>
             <div>
-              <dt style={{ color: '#64748b', fontSize: '0.78rem', textTransform: 'uppercase' }}>Phone Number</dt>
+              <dt style={{ color: '#64748b', fontSize: '0.78rem', textTransform: 'uppercase' }}>{t('common.phone')}</dt>
               <dd style={{ margin: '4px 0 0', fontWeight: 600, color: '#1e293b' }}>{user.phone || '—'}</dd>
             </div>
             <div>
-              <dt style={{ color: '#64748b', fontSize: '0.78rem', textTransform: 'uppercase' }}>Account Status</dt>
-              <dd style={{ margin: '4px 0 0', fontWeight: 600, color: '#1e293b' }}>{user.status}</dd>
+              <dt style={{ color: '#64748b', fontSize: '0.78rem', textTransform: 'uppercase' }}>{t('common.status')}</dt>
+              <dd style={{ margin: '4px 0 0', fontWeight: 600, color: '#1e293b' }}>{user.status === 'ACTIVE' ? t('common.active') : t('common.inactive')}</dd>
             </div>
             <div>
-              <dt style={{ color: '#64748b', fontSize: '0.78rem', textTransform: 'uppercase' }}>Member Since</dt>
+              <dt style={{ color: '#64748b', fontSize: '0.78rem', textTransform: 'uppercase' }}>{t('common.date')}</dt>
               <dd style={{ margin: '4px 0 0', fontWeight: 600, color: '#1e293b' }}>
                 {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}
               </dd>
             </div>
             <div>
-              <dt style={{ color: '#64748b', fontSize: '0.78rem', textTransform: 'uppercase' }}>Last Active Session</dt>
+              <dt style={{ color: '#64748b', fontSize: '0.78rem', textTransform: 'uppercase' }}>{t('users.last_active')}</dt>
               <dd style={{ margin: '4px 0 0', fontWeight: 600, color: '#1e293b' }}>
                 {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never'}
               </dd>
@@ -134,11 +136,11 @@ export default function UserDetailPage() {
         <div className="card" style={{ padding: 26 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
             <Shield size={18} color="#6366f1" />
-            <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700 }}>Effective Privileges</h3>
+            <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700 }}>{t('roles.permissions')}</h3>
           </div>
 
           <p style={{ margin: '0 0 16px', fontSize: '0.82rem', color: '#64748b' }}>
-            Privileges inherited through the <strong>{user.roleName || user.role}</strong> security role:
+            {t('roles.security_roles_desc')} (<strong>{user.roleName || user.role}</strong>):
           </p>
 
           {isSuperAdmin ? (

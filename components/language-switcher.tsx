@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Globe, Check } from 'lucide-react';
 import { useAppLanguage, LanguageCode } from '../provider';
 
@@ -12,17 +13,82 @@ interface LanguageSwitcherProps {
 export function LanguageSwitcher({ variant = 'dark', showLabel = true }: LanguageSwitcherProps) {
   const { language, setLanguage } = useAppLanguage();
   const [open, setOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+  const [coords, setCoords] = useState<{ top?: number; bottom?: number; left?: number; right?: number }>({});
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const updatePosition = () => {
+    if (!buttonRef.current) return;
+    const rect = buttonRef.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const isAbove = spaceBelow < 130 && rect.top > 130;
+
+    const newCoords: { top?: number; bottom?: number; left?: number; right?: number } = {};
+
+    if (isAbove) {
+      newCoords.bottom = window.innerHeight - rect.top + 6;
+    } else {
+      newCoords.top = rect.bottom + 6;
+    }
+
+    if (rect.left + 170 > window.innerWidth) {
+      newCoords.right = Math.max(8, window.innerWidth - rect.right);
+    } else {
+      newCoords.left = Math.max(8, rect.left);
+    }
+
+    setCoords(newCoords);
+  };
+
+  const handleToggle = () => {
+    if (!open) {
+      updatePosition();
+    }
+    setOpen((prev) => !prev);
+  };
+
+  useEffect(() => {
+    if (!open) return;
+
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (
+        buttonRef.current &&
+        !buttonRef.current.contains(target) &&
+        menuRef.current &&
+        !menuRef.current.contains(target)
+      ) {
         setOpen(false);
       }
     }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setOpen(false);
+      }
+    }
+
+    function handleScrollOrResize() {
+      updatePosition();
+    }
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    document.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('resize', handleScrollOrResize);
+    window.addEventListener('scroll', handleScrollOrResize, true);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('resize', handleScrollOrResize);
+      window.removeEventListener('scroll', handleScrollOrResize, true);
+    };
+  }, [open]);
 
   const languages: { code: LanguageCode; label: string; short: string; flag: string }[] = [
     { code: 'en', label: 'English', short: 'EN', flag: '🇺🇸' },
@@ -35,10 +101,11 @@ export function LanguageSwitcher({ variant = 'dark', showLabel = true }: Languag
   const isMinimal = variant === 'minimal';
 
   return (
-    <div ref={dropdownRef} style={{ position: 'relative', display: 'inline-block' }}>
+    <div style={{ position: 'relative', display: 'inline-block' }}>
       <button
+        ref={buttonRef}
         type="button"
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={handleToggle}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -69,23 +136,26 @@ export function LanguageSwitcher({ variant = 'dark', showLabel = true }: Languag
         {showLabel && <span>{currentLang.short}</span>}
       </button>
 
-      {open && (
+      {open && mounted && createPortal(
         <div
+          ref={menuRef}
           style={{
-            position: 'absolute',
-            bottom: isDark ? '110%' : undefined,
-            top: !isDark ? '110%' : undefined,
-            right: 0,
-            zIndex: 9999,
-            minWidth: 150,
-            background: isDark ? '#1e2538' : '#ffffff',
-            border: isDark ? '1px solid rgba(255,255,255,0.12)' : '1px solid #e2e8f0',
+            position: 'fixed',
+            top: coords.top,
+            bottom: coords.bottom,
+            left: coords.left,
+            right: coords.right,
+            zIndex: 99999,
+            minWidth: 160,
+            background: isDark ? '#1a2035' : '#ffffff',
+            border: isDark ? '1px solid rgba(255,255,255,0.15)' : '1px solid #e2e8f0',
             borderRadius: 10,
             padding: '6px',
-            boxShadow: '0 10px 25px -5px rgba(0,0,0,0.2), 0 8px 10px -6px rgba(0,0,0,0.1)',
+            boxShadow: '0 16px 36px -4px rgba(0,0,0,0.35), 0 0 1px 1px rgba(255,255,255,0.08)',
             display: 'flex',
             flexDirection: 'column',
             gap: 2,
+            animation: 'flyoutFadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards',
           }}
         >
           {languages.map((l) => {
@@ -109,7 +179,7 @@ export function LanguageSwitcher({ variant = 'dark', showLabel = true }: Languag
                   border: 'none',
                   background: active
                     ? isDark
-                      ? 'rgba(99,102,241,0.2)'
+                      ? 'rgba(99,102,241,0.25)'
                       : '#eef2ff'
                     : 'transparent',
                   color: active
@@ -123,6 +193,7 @@ export function LanguageSwitcher({ variant = 'dark', showLabel = true }: Languag
                   fontSize: '0.84rem',
                   cursor: 'pointer',
                   textAlign: 'left',
+                  transition: 'background 0.12s ease',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -133,7 +204,8 @@ export function LanguageSwitcher({ variant = 'dark', showLabel = true }: Languag
               </button>
             );
           })}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

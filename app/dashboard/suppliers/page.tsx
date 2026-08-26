@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../components/auth-guard';
 import { Shell } from '../../../components/shell';
 import { api } from '../../../lib/api';
+import { useTranslation } from '../../../provider';
 import {
   CurrencyDisplay,
   DataTable,
@@ -19,6 +20,7 @@ import {
 } from '../../../components/ui';
 
 export default function SuppliersPage() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
@@ -39,12 +41,12 @@ export default function SuppliersPage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title="Suppliers"
-            description="Manage supplier profiles, procurement history, and payables."
-            breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Suppliers' }]}
+            title={t('suppliers.title')}
+            description={t('suppliers.description')}
+            breadcrumbs={[{ label: t('common.dashboard'), href: '/dashboard' }, { label: t('suppliers.title') }]}
             action={
               <Link className="primary-button" href="/dashboard/suppliers/create">
-                + Add Supplier
+                {t('suppliers.add_supplier')}
               </Link>
             }
           />
@@ -55,24 +57,24 @@ export default function SuppliersPage() {
               setSearch(v);
               setPage(1);
             }}
-            placeholder="Search supplier, company, or phone…"
+            placeholder={t('suppliers.search_placeholder')}
           />
 
           {query.isLoading ? (
-            <LoadingSpinner label="Loading suppliers directory…" />
+            <LoadingSpinner label={t('common.loading')} />
           ) : query.error ? (
             <div className="form-error">{query.error.message}</div>
           ) : (
             <>
               <DataTable
                 columns={[
-                  'Supplier Name',
-                  'Company',
-                  'Phone',
-                  'Email',
-                  'Outstanding Due',
-                  'Status',
-                  'Actions',
+                  t('suppliers.supplier_name'),
+                  t('suppliers.company_name'),
+                  t('common.phone'),
+                  t('common.email'),
+                  t('suppliers.outstanding_due'),
+                  t('common.status'),
+                  t('common.actions'),
                 ]}
               >
                 {query.data?.data?.length ? (
@@ -93,15 +95,15 @@ export default function SuppliersPage() {
                         <StatusBadge value={s.status} />
                       </td>
                       <td>
-                        <Link href={`/dashboard/suppliers/${s.id}`}>View Details</Link> ·{' '}
-                        <Link href={`/dashboard/suppliers/${s.id}/edit`}>Edit</Link>
+                        <Link href={`/dashboard/suppliers/${s.id}`}>{t('common.view_details')}</Link> ·{' '}
+                        <Link href={`/dashboard/suppliers/${s.id}/edit`}>{t('common.edit')}</Link>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
                     <td colSpan={7}>
-                      <EmptyTableState message="No suppliers found." />
+                      <EmptyTableState message={t('suppliers.no_suppliers_found')} />
                     </td>
                   </tr>
                 )}

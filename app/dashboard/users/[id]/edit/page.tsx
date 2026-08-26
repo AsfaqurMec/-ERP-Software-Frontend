@@ -7,8 +7,10 @@ import { api } from '../../../../../lib/api';
 import { PageContainer, PageHeader } from '../../../../../components/ui';
 import { User, Camera, Shield, Key, AlertCircle } from 'lucide-react';
 import { usePermissions } from '../../../../../hooks/use-auth';
+import { useTranslation } from '../../../../../provider';
 
 export default function EditUserPage() {
+  const { t } = useTranslation();
   const params = useParams();
   const id = params?.id as string;
   const router = useRouter();
@@ -119,7 +121,7 @@ export default function EditUserPage() {
     return (
       <PageContainer>
         <div className="skeleton" style={{ height: 300 }}>
-          Loading user details...
+          {t('common.loading')}
         </div>
       </PageContainer>
     );
@@ -130,12 +132,12 @@ export default function EditUserPage() {
   return (
     <PageContainer>
       <PageHeader
-        title={`Edit User: ${user?.name}`}
-        description="Update contact information, reassign security roles, or reset account password."
+        title={`${t('users.edit_user')}: ${user?.name}`}
+        description={t('users.users_directory_desc')}
         breadcrumbs={[
-          { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Users Directory', href: '/dashboard/users' },
-          { label: 'Edit User' },
+          { label: t('common.dashboard'), href: '/dashboard' },
+          { label: t('users.title'), href: '/dashboard/users' },
+          { label: t('users.edit_user') },
         ]}
       />
 
@@ -225,15 +227,14 @@ export default function EditUserPage() {
             </div>
 
             <div>
-              <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>{form.name || 'User Profile'}</div>
-              <small style={{ color: '#64748b' }}>Cloudinary hosted profile picture.</small>
-              {uploadingImage && <small style={{ color: '#6366f1', display: 'block' }}>Uploading photo...</small>}
+              <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>{form.name || t('auth.profile')}</div>
+              {uploadingImage && <small style={{ color: '#6366f1', display: 'block' }}>{t('common.loading')}</small>}
             </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
             <div className="form-field">
-              <label>Full Name *</label>
+              <label>{t('users.full_name')} *</label>
               <input
                 type="text"
                 value={form.name}
@@ -243,7 +244,7 @@ export default function EditUserPage() {
             </div>
 
             <div className="form-field">
-              <label>Email Address *</label>
+              <label>{t('common.email')} *</label>
               <input
                 type="email"
                 value={form.email}
@@ -253,7 +254,7 @@ export default function EditUserPage() {
             </div>
 
             <div className="form-field">
-              <label>Phone Number</label>
+              <label>{t('common.phone')}</label>
               <input
                 type="tel"
                 value={form.phone}
@@ -263,7 +264,7 @@ export default function EditUserPage() {
             </div>
 
             <div className="form-field">
-              <label>Reset Password (Leave blank to keep unchanged)</label>
+              <label>{t('settings.admin_password')}</label>
               <input
                 type="password"
                 value={form.password}
@@ -273,38 +274,37 @@ export default function EditUserPage() {
             </div>
 
             <div className="form-field">
-              <label>Assigned Security Role</label>
+              <label>{t('users.security_role')}</label>
               <select
                 value={form.roleId}
                 onChange={(e) => setForm({ ...form, roleId: e.target.value })}
               >
-                <option value="">Default Admin</option>
+                <option value="">{t('users.security_role')}...</option>
                 {rolesData?.items.map((r) => (
                   <option key={r.id} value={r.id}>
-                    {r.name} {r.isSystem ? '(System)' : '(Custom)'}
+                    {r.name} {r.isSystem ? `(${t('roles.system_role')})` : `(${t('roles.custom_role')})`}
                   </option>
                 ))}
               </select>
             </div>
 
             <div className="form-field">
-              <label>Account Status</label>
+              <label>{t('common.status')}</label>
               <select
                 value={form.status}
                 onChange={(e) => setForm({ ...form, status: e.target.value })}
                 disabled={isSelf}
               >
-                <option value="ACTIVE">Active</option>
-                <option value="INACTIVE">Inactive (Locked)</option>
+                <option value="ACTIVE">{t('common.active')}</option>
+                <option value="INACTIVE">{t('common.inactive')}</option>
               </select>
-              {isSelf && <small style={{ color: '#64748b' }}>You cannot deactivate your own session</small>}
             </div>
           </div>
         </div>
 
         <div className="form-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
           <button type="button" onClick={() => router.push('/dashboard/users')} className="ghost">
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             type="submit"
@@ -312,7 +312,7 @@ export default function EditUserPage() {
             disabled={updateMutation.isPending}
             style={{ padding: '10px 24px' }}
           >
-            {updateMutation.isPending ? 'Saving...' : 'Save User Changes'}
+            {updateMutation.isPending ? t('common.saving') : t('common.save')}
           </button>
         </div>
       </form>

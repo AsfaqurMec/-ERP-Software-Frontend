@@ -6,8 +6,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../../../lib/api';
 import { PageContainer, PageHeader } from '../../../../components/ui';
 import { User, Camera, Shield, AlertCircle } from 'lucide-react';
+import { useTranslation } from '../../../../provider';
 
 export default function CreateUserPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -79,12 +81,12 @@ export default function CreateUserPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Add New User"
-        description="Register a new employee account and assign their initial authorization role."
+        title={t('users.add_user')}
+        description={t('users.users_directory_desc')}
         breadcrumbs={[
-          { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Users Directory', href: '/dashboard/users' },
-          { label: 'Create User' },
+          { label: t('common.dashboard'), href: '/dashboard' },
+          { label: t('users.title'), href: '/dashboard/users' },
+          { label: t('users.add_user') },
         ]}
       />
 
@@ -174,15 +176,14 @@ export default function CreateUserPage() {
             </div>
 
             <div>
-              <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>Profile Picture (Optional)</div>
-              <small style={{ color: '#64748b' }}>PNG, JPG or WebP image. Cloudinary hosted.</small>
-              {uploadingImage && <small style={{ color: '#6366f1', display: 'block' }}>Uploading photo...</small>}
+              <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>{t('auth.profile')} (Cloudinary)</div>
+              {uploadingImage && <small style={{ color: '#6366f1', display: 'block' }}>{t('common.loading')}</small>}
             </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
             <div className="form-field">
-              <label>Full Name *</label>
+              <label>{t('users.full_name')} *</label>
               <input
                 type="text"
                 value={form.name}
@@ -193,7 +194,7 @@ export default function CreateUserPage() {
             </div>
 
             <div className="form-field">
-              <label>Email Address *</label>
+              <label>{t('common.email')} *</label>
               <input
                 type="email"
                 value={form.email}
@@ -204,7 +205,7 @@ export default function CreateUserPage() {
             </div>
 
             <div className="form-field">
-              <label>Phone Number</label>
+              <label>{t('common.phone')}</label>
               <input
                 type="tel"
                 value={form.phone}
@@ -214,7 +215,7 @@ export default function CreateUserPage() {
             </div>
 
             <div className="form-field">
-              <label>Initial Password *</label>
+              <label>{t('auth.password')} *</label>
               <input
                 type="password"
                 value={form.password}
@@ -225,29 +226,29 @@ export default function CreateUserPage() {
             </div>
 
             <div className="form-field">
-              <label>Assigned Security Role *</label>
+              <label>{t('users.security_role')} *</label>
               <select
                 value={form.roleId}
                 onChange={(e) => setForm({ ...form, roleId: e.target.value })}
                 required
               >
-                <option value="">Select a role...</option>
+                <option value="">{t('users.security_role')}...</option>
                 {rolesData?.items.map((r) => (
                   <option key={r.id} value={r.id}>
-                    {r.name} {r.isSystem ? '(System)' : '(Custom)'}
+                    {r.name} {r.isSystem ? `(${t('roles.system_role')})` : `(${t('roles.custom_role')})`}
                   </option>
                 ))}
               </select>
             </div>
 
             <div className="form-field">
-              <label>Initial Account Status</label>
+              <label>{t('common.status')}</label>
               <select
                 value={form.status}
                 onChange={(e) => setForm({ ...form, status: e.target.value })}
               >
-                <option value="ACTIVE">Active</option>
-                <option value="INACTIVE">Inactive</option>
+                <option value="ACTIVE">{t('common.active')}</option>
+                <option value="INACTIVE">{t('common.inactive')}</option>
               </select>
             </div>
           </div>
@@ -255,7 +256,7 @@ export default function CreateUserPage() {
 
         <div className="form-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
           <button type="button" onClick={() => router.push('/dashboard/users')} className="ghost">
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             type="submit"
@@ -263,7 +264,7 @@ export default function CreateUserPage() {
             disabled={createMutation.isPending}
             style={{ padding: '10px 24px' }}
           >
-            {createMutation.isPending ? 'Creating...' : 'Create User Account'}
+            {createMutation.isPending ? t('common.saving') : t('users.add_user')}
           </button>
         </div>
       </form>

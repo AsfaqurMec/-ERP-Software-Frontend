@@ -17,8 +17,10 @@ import { Shell } from '../../../components/shell';
 import { PageContainer, PageHeader, StatCard, StatCardGrid, DataTablePagination } from '../../../components/ui';
 import { ExportMenu } from '../../../components/export-menu';
 import { api, formatDateTime } from '../../../lib/api';
+import { useTranslation } from '../../../provider';
 
 export default function ActivityLogsPage() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [moduleFilter, setModuleFilter] = useState('');
@@ -43,13 +45,13 @@ export default function ActivityLogsPage() {
   const meta = data?.meta || { total: 0, page: 1, totalPages: 1 };
 
   const exportColumns = [
-    { header: 'Timestamp', key: 'createdAt', formatter: (r: any) => formatDateTime(r.createdAt) },
-    { header: 'User Name', key: 'user.name', formatter: (r: any) => r.user?.name || 'System' },
-    { header: 'User Email', key: 'user.email', formatter: (r: any) => r.user?.email || 'system@stockpilot.io' },
-    { header: 'Action', key: 'action' },
-    { header: 'Module', key: 'module' },
-    { header: 'Reference', key: 'reference' },
-    { header: 'IP Address', key: 'ip' },
+    { header: t('activity_logs.timestamp'), key: 'createdAt', formatter: (r: any) => formatDateTime(r.createdAt) },
+    { header: t('users.user_name'), key: 'user.name', formatter: (r: any) => r.user?.name || 'System' },
+    { header: t('common.email'), key: 'user.email', formatter: (r: any) => r.user?.email || 'system@stockpilot.io' },
+    { header: t('activity_logs.action'), key: 'action' },
+    { header: t('activity_logs.module'), key: 'module' },
+    { header: t('activity_logs.reference'), key: 'reference' },
+    { header: t('activity_logs.ip_address'), key: 'ip' },
   ];
 
   return (
@@ -57,9 +59,9 @@ export default function ActivityLogsPage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title="Activity & Audit Logs"
-            description="Immutable operational audit trail recording entity lifecycle events, financial transactions, and configuration updates"
-            breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Activity Logs' }]}
+            title={t('activity_logs.title')}
+            description={t('activity_logs.description')}
+            breadcrumbs={[{ label: t('common.dashboard'), href: '/dashboard' }, { label: t('activity_logs.title') }]}
             action={
               <div style={{ display: 'flex', gap: 8 }}>
                 <ExportMenu filename="StockPilot_Audit_Logs" columns={exportColumns} data={logs} />
@@ -71,7 +73,7 @@ export default function ActivityLogsPage() {
                   style={{ display: 'flex', alignItems: 'center', gap: 6 }}
                 >
                   <RefreshCw size={14} className={isRefetching ? 'animate-spin' : ''} />
-                  <span>Refresh</span>
+                  <span>{t('common.refresh')}</span>
                 </button>
               </div>
             }
@@ -79,30 +81,30 @@ export default function ActivityLogsPage() {
 
           <StatCardGrid columns={4}>
             <StatCard
-              label="Total Logged Events"
+              label={t('activity_logs.total_logged_events')}
               value={meta.total}
-              detail="Recorded system operations"
+              detail={t('activity_logs.recorded_operations')}
               icon={<Activity size={20} color="#5068e6" />}
               kind="blue"
             />
             <StatCard
-              label="Active Module Filter"
-              value={moduleFilter || 'All Modules'}
-              detail="Event category scope"
+              label={t('activity_logs.module_filter')}
+              value={moduleFilter || t('activity_logs.all_modules')}
+              detail={t('activity_logs.category_scope')}
               icon={<Layers size={20} color="#28a476" />}
               kind="green"
             />
             <StatCard
-              label="Security Tracking"
-              value="Enabled"
-              detail="IP & User attribution active"
+              label={t('activity_logs.security_tracking')}
+              value={t('activity_logs.security_active')}
+              detail={t('activity_logs.security_detail')}
               icon={<Shield size={20} color="#8e71eb" />}
               kind="blue"
             />
             <StatCard
-              label="Current Page"
+              label={t('common.page')}
               value={`${meta.page} / ${meta.totalPages || 1}`}
-              detail={`${meta.total} total records`}
+              detail={`${meta.total} ${t('common.total')}`}
               icon={<Calendar size={20} color="#d28d2b" />}
               kind="amber"
             />
@@ -125,7 +127,7 @@ export default function ActivityLogsPage() {
               <Search size={14} color="#8b94b0" />
               <input
                 type="text"
-                placeholder="Search reference, user, action..."
+                placeholder={t('activity_logs.search_placeholder')}
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
@@ -157,17 +159,17 @@ export default function ActivityLogsPage() {
                   background: '#fff',
                 }}
               >
-                <option value="">All Modules</option>
-                <option value="PRODUCTS">Products</option>
-                <option value="CATEGORIES">Categories</option>
-                <option value="SALES">Sales</option>
-                <option value="PURCHASES">Purchases</option>
-                <option value="INVENTORY">Inventory</option>
-                <option value="CUSTOMERS">Customers</option>
-                <option value="SUPPLIERS">Suppliers</option>
-                <option value="PAYMENTS">Payments</option>
-                <option value="EXPENSES">Expenses</option>
-                <option value="SETTINGS">Settings</option>
+                <option value="">{t('activity_logs.all_modules')}</option>
+                <option value="PRODUCTS">{t('products.title')}</option>
+                <option value="CATEGORIES">{t('categories.title')}</option>
+                <option value="SALES">{t('sales.title')}</option>
+                <option value="PURCHASES">{t('purchases.title')}</option>
+                <option value="INVENTORY">{t('inventory.stock_position')}</option>
+                <option value="CUSTOMERS">{t('customers.title')}</option>
+                <option value="SUPPLIERS">{t('suppliers.title')}</option>
+                <option value="PAYMENTS">{t('payments.title')}</option>
+                <option value="EXPENSES">{t('expenses.title')}</option>
+                <option value="SETTINGS">{t('settings.title')}</option>
               </select>
 
               <select
@@ -184,14 +186,14 @@ export default function ActivityLogsPage() {
                   background: '#fff',
                 }}
               >
-                <option value="">All Actions</option>
-                <option value="CREATE">CREATE</option>
-                <option value="UPDATE">UPDATE</option>
-                <option value="DELETE">DELETE</option>
-                <option value="CANCEL">CANCEL</option>
-                <option value="RETURN">RETURN</option>
-                <option value="PAYMENT">PAYMENT</option>
-                <option value="SETTINGS_CHANGE">SETTINGS CHANGE</option>
+                <option value="">{t('activity_logs.all_actions')}</option>
+                <option value="CREATE">{t('common.create')}</option>
+                <option value="UPDATE">{t('common.edit')}</option>
+                <option value="DELETE">{t('common.delete')}</option>
+                <option value="CANCEL">{t('status.cancelled')}</option>
+                <option value="RETURN">{t('sales.returns_title')}</option>
+                <option value="PAYMENT">{t('payments.title')}</option>
+                <option value="SETTINGS_CHANGE">{t('settings.title')}</option>
               </select>
             </div>
           </div>
@@ -199,24 +201,24 @@ export default function ActivityLogsPage() {
           {/* Audit Logs Table */}
           <div className="card table-container">
             {isLoading ? (
-              <div style={{ padding: 32, textAlign: 'center', color: '#8b94b0' }}>Loading audit records...</div>
+              <div style={{ padding: 32, textAlign: 'center', color: '#8b94b0' }}>{t('common.loading')}</div>
             ) : logs.length === 0 ? (
               <div className="empty-state" style={{ padding: 48, textAlign: 'center' }}>
                 <Activity size={36} color="#8b94b0" style={{ margin: '0 auto 10px' }} />
-                <h3>No activity records found</h3>
-                <p style={{ color: '#8b94b0', fontSize: '0.88rem' }}>No events match the selected search or module filter.</p>
+                <h3>{t('activity_logs.no_logs')}</h3>
+                <p style={{ color: '#8b94b0', fontSize: '0.88rem' }}>{t('activity_logs.no_logs_desc')}</p>
               </div>
             ) : (
               <table>
                 <thead>
                   <tr>
-                    <th>Timestamp</th>
-                    <th>User</th>
-                    <th>Module</th>
-                    <th>Action</th>
-                    <th>Reference</th>
-                    <th>IP Address</th>
-                    <th style={{ textAlign: 'right' }}>Payload</th>
+                    <th>{t('activity_logs.timestamp')}</th>
+                    <th>{t('users.user_name')}</th>
+                    <th>{t('activity_logs.module')}</th>
+                    <th>{t('activity_logs.action')}</th>
+                    <th>{t('activity_logs.reference')}</th>
+                    <th>{t('activity_logs.ip_address')}</th>
+                    <th style={{ textAlign: 'right' }}>{t('activity_logs.payload')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -305,10 +307,10 @@ export default function ActivityLogsPage() {
                               onClick={() => setSelectedLog(log)}
                               style={{ fontSize: '0.76rem', padding: '3px 8px', height: 'auto' }}
                             >
-                              View JSON
+                              {t('common.view')}
                             </button>
                           ) : (
-                            <span style={{ color: '#cbd5e1', fontSize: '0.75rem' }}>None</span>
+                            <span style={{ color: '#cbd5e1', fontSize: '0.75rem' }}>—</span>
                           )}
                         </td>
                       </tr>
@@ -359,7 +361,7 @@ export default function ActivityLogsPage() {
                 onClick={(e) => e.stopPropagation()}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                  <h3 style={{ margin: 0, fontSize: '1.05rem' }}>Audit Event Payload</h3>
+                  <h3 style={{ margin: 0, fontSize: '1.05rem' }}>{t('activity_logs.payload')}</h3>
                   <button type="button" className="ghost" onClick={() => setSelectedLog(null)}>
                     ✕
                   </button>
@@ -382,7 +384,7 @@ export default function ActivityLogsPage() {
                 </pre>
                 <div style={{ textAlign: 'right', marginTop: 16 }}>
                   <button type="button" className="primary" onClick={() => setSelectedLog(null)}>
-                    Close
+                    {t('common.close')}
                   </button>
                 </div>
               </div>

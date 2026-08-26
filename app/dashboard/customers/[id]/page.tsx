@@ -19,8 +19,10 @@ import {
   StatusBadge,
   ErrorState,
 } from '../../../../components/ui';
+import { useTranslation } from '../../../../provider';
 
 export default function CustomerDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
 
   const customerQuery = useQuery({
@@ -32,7 +34,7 @@ export default function CustomerDetailPage() {
     return (
       <AuthGuard>
         <Shell>
-          <LoadingSpinner label="Loading customer ledger and transaction history…" />
+          <LoadingSpinner label={t('common.loading')} />
         </Shell>
       </AuthGuard>
     );
@@ -56,78 +58,78 @@ export default function CustomerDetailPage() {
         <PageContainer>
           <PageHeader
             title={c.name}
-            description={`Customer profile & ledger · Phone: ${c.phone || '—'}`}
+            description={`${t('customers.customer_info')} · ${t('common.phone')}: ${c.phone || '—'}`}
             breadcrumbs={[
-              { label: 'Dashboard', href: '/dashboard' },
-              { label: 'Customers', href: '/dashboard/customers' },
+              { label: t('common.dashboard'), href: '/dashboard' },
+              { label: t('customers.title'), href: '/dashboard/customers' },
               { label: c.name },
             ]}
             action={
               <Link className="primary-button" href={`/dashboard/customers/${id}/edit`}>
-                Edit Customer
+                {t('customers.edit_customer')}
               </Link>
             }
           />
 
           <StatCardGrid columns={5}>
             <StatCard
-              label="Total Sales Volume"
+              label={t('reports.sales_revenue')}
               value={<CurrencyDisplay value={c.summary.totalSales} />}
-              detail={`${c.summary.salesCount} lifetime orders`}
+              detail={`${c.summary.salesCount} ${t('sales.title')}`}
               kind="blue"
             />
             <StatCard
-              label="Total Payments Received"
+              label={t('payments.total_received')}
               value={<CurrencyDisplay value={c.summary.totalPaid} />}
-              detail={`${c.summary.paymentCount} payments recorded`}
+              detail={`${c.summary.paymentCount} ${t('payments.title')}`}
               kind="green"
             />
             <StatCard
-              label="Outstanding Due Balance"
+              label={t('customers.total_due')}
               value={<CurrencyDisplay value={c.summary.totalDue} />}
-              detail="Receivable amount"
+              detail={t('dues.receivable')}
               kind="rose"
             />
             <StatCard
-              label="Total Returns Credited"
+              label={t('sales.returns_title')}
               value={<CurrencyDisplay value={c.summary.totalReturns || 0} />}
-              detail="Restocked returns"
+              detail={t('sales.returns_title')}
               kind="amber"
             />
-            <StatCard label="Account Status" value={<StatusBadge value={c.status} />} kind="neutral" />
+            <StatCard label={t('common.status')} value={<StatusBadge value={c.status} />} kind="neutral" />
           </StatCardGrid>
 
           <div className="detail-grid">
             <section className="card">
-              <h3>Customer Contact & Details</h3>
+              <h3>{t('customers.customer_info')}</h3>
               <dl>
-                <dt>Customer Name</dt>
+                <dt>{t('customers.customer_name')}</dt>
                 <dd>
                   <strong>{c.name}</strong>
                 </dd>
 
-                <dt>Phone Number</dt>
+                <dt>{t('common.phone')}</dt>
                 <dd>{c.phone || '—'}</dd>
 
-                <dt>Email Address</dt>
+                <dt>{t('common.email')}</dt>
                 <dd>{c.email || '—'}</dd>
 
-                <dt>Opening Balance</dt>
+                <dt>{t('customers.opening_balance')}</dt>
                 <dd>
                   <CurrencyDisplay value={c.openingBalance} />
                 </dd>
 
-                <dt>Address</dt>
+                <dt>{t('common.address')}</dt>
                 <dd style={{ gridColumn: 'span 2' }}>{c.address || '—'}</dd>
 
-                <dt>Notes</dt>
+                <dt>{t('customers.customer_notes')}</dt>
                 <dd style={{ gridColumn: 'span 2' }}>{c.notes || '—'}</dd>
               </dl>
             </section>
 
             <section className="card">
-              <h3>Payment History</h3>
-              <DataTable columns={['Date', 'Amount', 'Method', 'Reference']}>
+              <h3>{t('payments.title')}</h3>
+              <DataTable columns={[t('common.date'), t('common.amount'), t('common.payment_method'), t('activity_logs.reference')]}>
                 {c.payments && c.payments.length ? (
                   c.payments.map((p: any) => (
                     <tr key={p.id}>
@@ -148,7 +150,7 @@ export default function CustomerDetailPage() {
                 ) : (
                   <tr>
                     <td colSpan={4} className="empty">
-                      No payments recorded yet.
+                      {t('payments.no_payments')}
                     </td>
                   </tr>
                 )}
@@ -159,11 +161,21 @@ export default function CustomerDetailPage() {
           <section className="card">
             <div className="card-head">
               <div>
-                <h3>Sales Invoices History</h3>
-                <p>All invoices billed to this customer</p>
+                <h3>{t('sales.title')}</h3>
+                <p>{t('sales.invoice_number')}</p>
               </div>
             </div>
-            <DataTable columns={['Invoice #', 'Date', 'Total', 'Paid', 'Due', 'Status', 'Actions']}>
+            <DataTable
+              columns={[
+                t('sales.invoice_number'),
+                t('common.date'),
+                t('common.total'),
+                t('sales.paid_amount'),
+                t('sales.due_amount'),
+                t('common.status'),
+                t('common.actions'),
+              ]}
+            >
               {c.sales && c.sales.length ? (
                 c.sales.map((s: any) => (
                   <tr key={s.id}>
@@ -188,14 +200,14 @@ export default function CustomerDetailPage() {
                       <StatusBadge value={s.status} />
                     </td>
                     <td>
-                      <Link href={`/dashboard/sales/${s.id}`}>View Invoice</Link>
+                      <Link href={`/dashboard/sales/${s.id}`}>{t('common.view')}</Link>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td colSpan={7} className="empty">
-                    No sales orders created for this customer yet.
+                    {t('sales.no_sales_found')}
                   </td>
                 </tr>
               )}

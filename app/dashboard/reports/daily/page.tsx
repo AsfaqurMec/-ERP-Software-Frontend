@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../../components/auth-guard';
 import { Shell } from '../../../../components/shell';
 import { api } from '../../../../lib/api';
+import { useTranslation } from '../../../../provider';
 import {
   CurrencyDisplay,
   LoadingSpinner,
@@ -17,6 +18,7 @@ import {
 import { ShoppingBag, Package, TrendingUp, Coins, Receipt, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 
 export default function DailyReportPage() {
+  const { t } = useTranslation();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10));
 
   const dailyQuery = useQuery({
@@ -29,12 +31,12 @@ export default function DailyReportPage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title="Daily Operational Report"
-            description="Complete operational review of today's sales, purchases, receipts, disbursements, and net earnings."
+            title={t('reports.daily_title')}
+            description={t('reports.daily_desc')}
             breadcrumbs={[
-              { label: 'Dashboard', href: '/dashboard' },
-              { label: 'Reports', href: '/dashboard/reports' },
-              { label: 'Daily' },
+              { label: t('common.dashboard'), href: '/dashboard' },
+              { label: t('reports.title'), href: '/dashboard/reports' },
+              { label: t('reports.daily_title') },
             ]}
             action={
               <input
@@ -47,7 +49,7 @@ export default function DailyReportPage() {
           />
 
           {dailyQuery.isLoading ? (
-            <LoadingSpinner label="Compiling daily transactions ledger…" />
+            <LoadingSpinner label={t('common.loading')} />
           ) : dailyQuery.error ? (
             <ErrorState message={dailyQuery.error.message} onRetry={() => dailyQuery.refetch()} />
           ) : (
@@ -55,30 +57,30 @@ export default function DailyReportPage() {
               {/* Daily KPI Snapshot */}
               <StatCardGrid columns={4}>
                 <StatCard
-                  label="Daily Sales Revenue"
+                  label={t('reports.daily_sales_revenue')}
                   value={<CurrencyDisplay value={dailyQuery.data.sales.revenue} />}
-                  detail={`${dailyQuery.data.sales.orders} orders · ${dailyQuery.data.sales.itemsSold} items sold`}
+                  detail={`${dailyQuery.data.sales.orders} ${t('sales.orders')}`}
                   icon={<ShoppingBag color="#5068e6" size={20} />}
                   kind="blue"
                 />
                 <StatCard
-                  label="Cost of Goods (COGS)"
+                  label={t('reports.cogs')}
                   value={<CurrencyDisplay value={dailyQuery.data.sales.cogs} />}
-                  detail="Inventory cost of goods sold"
+                  detail={t('reports.cogs_detail')}
                   icon={<Package color="#d28d2b" size={20} />}
                   kind="amber"
                 />
                 <StatCard
-                  label="Gross Profit"
+                  label={t('reports.gross_profit')}
                   value={<CurrencyDisplay value={dailyQuery.data.profit.grossProfit} />}
-                  detail="Sales revenue minus COGS"
+                  detail={t('reports.gross_profit_detail')}
                   icon={<TrendingUp color="#28a476" size={20} />}
                   kind="green"
                 />
                 <StatCard
-                  label="Net Profit"
+                  label={t('reports.net_profit')}
                   value={<CurrencyDisplay value={dailyQuery.data.profit.netProfit} />}
-                  detail="Gross margin minus expenses"
+                  detail={t('reports.net_profit_detail')}
                   icon={<Coins color={Number(dailyQuery.data.profit.netProfit) >= 0 ? '#28a476' : '#ef4444'} size={20} />}
                   kind={Number(dailyQuery.data.profit.netProfit) >= 0 ? 'green' : 'rose'}
                 />
@@ -87,49 +89,49 @@ export default function DailyReportPage() {
               {/* Inward & Cash Flow Breakdown */}
               <div className="grid-2" style={{ marginTop: 10 }}>
                 <section className="card">
-                  <h3>Daily Inward Procurement</h3>
+                  <h3>{t('reports.daily_procurement')}</h3>
                   <dl>
-                    <dt>Purchase Orders Placed</dt>
+                    <dt>{t('reports.purchases_title')}</dt>
                     <dd>
-                      <strong>{dailyQuery.data.purchases.orders} orders</strong>
+                      <strong>{dailyQuery.data.purchases.orders} {t('sales.orders')}</strong>
                     </dd>
 
-                    <dt>Items Purchased</dt>
-                    <dd>{dailyQuery.data.purchases.itemsPurchased} units</dd>
+                    <dt>{t('dashboard.units_in_stock')}</dt>
+                    <dd>{dailyQuery.data.purchases.itemsPurchased} {t('products.units')}</dd>
 
-                    <dt>Total Purchases Value</dt>
+                    <dt>{t('purchases.grand_total')}</dt>
                     <dd>
                       <strong style={{ color: '#d28d2b' }}>
                         <CurrencyDisplay value={dailyQuery.data.purchases.total} />
                       </strong>
                     </dd>
 
-                    <dt>Daily Operating Expenses</dt>
+                    <dt>{t('expenses.title')}</dt>
                     <dd>
                       <strong style={{ color: '#ef4444' }}>
                         <CurrencyDisplay value={dailyQuery.data.expenses.total} />
                       </strong>{' '}
-                      ({dailyQuery.data.expenses.count} expense records)
+                      ({dailyQuery.data.expenses.count})
                     </dd>
                   </dl>
                 </section>
 
                 <section className="card">
-                  <h3>Daily Cash & Settlement Inflow</h3>
+                  <h3>{t('reports.daily_cashflow')}</h3>
                   <dl>
-                    <dt>Customer Collections Received</dt>
+                    <dt>{t('payments.customer_collections')}</dt>
                     <dd style={{ color: '#188b64', fontWeight: 700 }}>
                       <ArrowDownLeft size={16} style={{ display: 'inline', verticalAlign: 'middle' }} />{' '}
                       <CurrencyDisplay value={dailyQuery.data.payments.received} />
                     </dd>
 
-                    <dt>Supplier Disbursements Paid</dt>
+                    <dt>{t('payments.supplier_disbursements')}</dt>
                     <dd style={{ color: '#ef4444', fontWeight: 700 }}>
                       <ArrowUpRight size={16} style={{ display: 'inline', verticalAlign: 'middle' }} />{' '}
                       <CurrencyDisplay value={dailyQuery.data.payments.made} />
                     </dd>
 
-                    <dt>Net Cash Position for Date</dt>
+                    <dt>{t('reports.net_cash_position')}</dt>
                     <dd style={{ fontWeight: 800 }}>
                       <CurrencyDisplay
                         value={Number(dailyQuery.data.payments.received) - Number(dailyQuery.data.payments.made)}

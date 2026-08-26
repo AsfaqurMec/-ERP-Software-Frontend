@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Download, FileSpreadsheet, FileText, Printer, ChevronDown } from 'lucide-react';
 import { exportToCsv, exportToExcel, exportToPrintOrPdf, type ExportColumn } from '../lib/export';
+import { useTranslation } from '../provider';
 
 export interface ExportMenuProps<T = any> {
   filename: string;
@@ -18,13 +19,15 @@ export function ExportMenu<T = any>({
   filename,
   columns,
   data,
-  label = 'Export',
+  label,
   title,
   subtitle,
   disabled = false,
 }: ExportMenuProps<T>) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const displayLabel = label || t('common.export');
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -62,7 +65,7 @@ export function ExportMenu<T = any>({
         }}
       >
         <Download size={15} />
-        <span>{label}</span>
+        <span>{displayLabel}</span>
         <ChevronDown size={13} />
       </button>
 
@@ -108,7 +111,7 @@ export function ExportMenu<T = any>({
             onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
           >
             <FileText size={15} color="#2563eb" />
-            <span>Export as CSV</span>
+            <span>{t('common.export_csv')}</span>
           </button>
 
           <button
@@ -135,7 +138,7 @@ export function ExportMenu<T = any>({
             onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
           >
             <FileSpreadsheet size={15} color="#16a34a" />
-            <span>Export as Excel (.xls)</span>
+            <span>{t('common.export_excel')}</span>
           </button>
 
           <div style={{ height: 1, background: '#edf0f7', margin: '2px 0' }} />
@@ -164,7 +167,7 @@ export function ExportMenu<T = any>({
             onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
           >
             <Printer size={15} color="#475569" />
-            <span>Print / PDF Table</span>
+            <span>{t('common.export_pdf')} / {t('common.print')}</span>
           </button>
         </div>
       )}

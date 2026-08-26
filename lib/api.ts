@@ -73,4 +73,4 @@ export async function api<T = any>(path: string, options: RequestInit = {}): Pro
   return data as T;
 }
 
-export const money = (v: any) => formatCurrency(Number(v) || 0);
+export const money = (v: any, lang?: string) => formatCurrency(Number(v) || 0, 'BDT', lang);

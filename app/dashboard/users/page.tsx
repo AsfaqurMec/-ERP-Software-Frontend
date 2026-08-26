@@ -8,8 +8,10 @@ import { PageContainer, PageHeader, DataTablePagination } from '../../../compone
 import { ExportMenu } from '../../../components/export-menu';
 import { Plus, Search, Edit, Trash2, Shield, User, CheckCircle, XCircle, AlertCircle, Eye } from 'lucide-react';
 import { usePermissions } from '../../../hooks/use-auth';
+import { useTranslation } from '../../../provider';
 
 export default function UsersListPage() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { hasPermission, user: currentUser } = usePermissions();
 
@@ -66,24 +68,23 @@ export default function UsersListPage() {
   const canDeleteUser = hasPermission(['users.delete', 'users.manage']);
 
   const exportColumns = [
-    { key: 'name', header: 'Full Name' },
-    { key: 'email', header: 'Email Address' },
-    { key: 'phone', header: 'Phone' },
-    { key: 'roleName', header: 'Assigned Role' },
-    { key: 'status', header: 'Account Status' },
-    { key: 'lastLoginAt', header: 'Last Login', format: (v: any) => (v ? new Date(v).toLocaleString() : 'Never') },
-    { key: 'createdAt', header: 'Registered On', format: (v: any) => (v ? new Date(v).toLocaleDateString() : '—') },
+    { key: 'name', header: t('users.user_name') },
+    { key: 'email', header: t('common.email') },
+    { key: 'phone', header: t('common.phone') },
+    { key: 'roleName', header: t('users.role') },
+    { key: 'status', header: t('common.status') },
+    { key: 'lastLoginAt', header: t('users.last_active'), format: (v: any) => (v ? new Date(v).toLocaleString() : 'Never') },
+    { key: 'createdAt', header: t('common.date'), format: (v: any) => (v ? new Date(v).toLocaleDateString() : '—') },
   ];
 
   return (
     <PageContainer>
       <PageHeader
-        title="User Accounts & Access"
-        description="Manage company employees, system logins, assign security roles, and monitor account status."
+        title={t('users.title')}
+        description={t('users.description')}
         breadcrumbs={[
-          { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Administration' },
-          { label: 'Users Directory' },
+          { label: t('common.dashboard'), href: '/dashboard' },
+          { label: t('users.title') },
         ]}
         action={
           <div style={{ display: 'flex', gap: 10 }}>
@@ -97,7 +98,7 @@ export default function UsersListPage() {
             {canCreateUser && (
               <Link href="/dashboard/users/create" className="primary-button">
                 <Plus size={16} style={{ marginRight: 6 }} />
-                Add New User
+                {t('users.add_user')}
               </Link>
             )}
           </div>
@@ -130,7 +131,7 @@ export default function UsersListPage() {
           <Search size={16} color="#94a3b8" />
           <input
             type="text"
-            placeholder="Search by name, email, or phone..."
+            placeholder={t('users.search_placeholder')}
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -146,7 +147,7 @@ export default function UsersListPage() {
             setPage(1);
           }}
         >
-          <option value="ALL">All Roles</option>
+          <option value="ALL">{t('users.all_roles')}</option>
           <option value="SUPER_ADMIN">Super Admin</option>
           <option value="ADMIN">Admin</option>
           <option value="MANAGER">Manager</option>
@@ -167,9 +168,9 @@ export default function UsersListPage() {
             setPage(1);
           }}
         >
-          <option value="ALL">All Statuses</option>
-          <option value="ACTIVE">Active Only</option>
-          <option value="INACTIVE">Inactive Only</option>
+          <option value="ALL">{t('common.all')}</option>
+          <option value="ACTIVE">{t('status.active')}</option>
+          <option value="INACTIVE">{t('status.inactive')}</option>
         </select>
       </div>
 
@@ -178,25 +179,25 @@ export default function UsersListPage() {
         <table>
           <thead>
             <tr>
-              <th>User</th>
-              <th>Contact</th>
-              <th>Assigned Role</th>
-              <th>Status</th>
-              <th>Last Active</th>
-              <th style={{ textAlign: 'right' }}>Actions</th>
+              <th>{t('users.user')}</th>
+              <th>{t('common.phone')}</th>
+              <th>{t('users.role')}</th>
+              <th>{t('common.status')}</th>
+              <th>{t('users.last_active')}</th>
+              <th style={{ textAlign: 'right' }}>{t('common.actions')}</th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
               <tr>
                 <td colSpan={6} style={{ textAlign: 'center', padding: 32 }}>
-                  Loading users directory...
+                  {t('common.loading')}
                 </td>
               </tr>
             ) : !data?.items || data.items.length === 0 ? (
               <tr>
                 <td colSpan={6} style={{ textAlign: 'center', padding: 32, color: '#64748b' }}>
-                  No user accounts match your search criteria.
+                  {t('users.no_users')}
                 </td>
               </tr>
             ) : (
@@ -294,7 +295,7 @@ export default function UsersListPage() {
                         }}
                       >
                         <span className={`pill ${u.status === 'ACTIVE' ? 'success' : ''}`}>
-                          {u.status === 'ACTIVE' ? 'Active' : 'Inactive'}
+                          {u.status === 'ACTIVE' ? t('status.active') : t('status.inactive')}
                         </span>
                       </button>
                     </td>
@@ -311,7 +312,7 @@ export default function UsersListPage() {
                           href={`/dashboard/users/${u.id}`}
                           className="ghost"
                           style={{ padding: '6px 8px' }}
-                          title="View Profile Details"
+                          title={t('common.view')}
                         >
                           <Eye size={13} />
                         </Link>
@@ -321,7 +322,7 @@ export default function UsersListPage() {
                             href={`/dashboard/users/${u.id}/edit`}
                             className="ghost"
                             style={{ padding: '6px 8px' }}
-                            title="Edit User & Roles"
+                            title={t('common.edit')}
                           >
                             <Edit size={13} />
                           </Link>
@@ -333,7 +334,7 @@ export default function UsersListPage() {
                             onClick={() => setDeleteId(u.id)}
                             className="ghost"
                             style={{ padding: '6px 8px', color: '#dc2626', borderColor: '#fecaca' }}
-                            title="Delete User"
+                            title={t('common.delete')}
                           >
                             <Trash2 size={13} />
                           </button>
@@ -363,13 +364,13 @@ export default function UsersListPage() {
       {deleteId && (
         <div className="dialog-backdrop">
           <div className="dialog">
-            <h3>Delete User Account</h3>
+            <h3>{t('users.delete_user')}</h3>
             <p>
-              Are you sure you want to permanently delete this user account? Their activity logs will be preserved for auditing.
+              {t('common.delete_confirm')}
             </p>
             <div>
               <button type="button" onClick={() => setDeleteId(null)} disabled={deleteMutation.isPending}>
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 type="button"
@@ -377,7 +378,7 @@ export default function UsersListPage() {
                 onClick={() => deleteMutation.mutate(deleteId)}
                 disabled={deleteMutation.isPending}
               >
-                {deleteMutation.isPending ? 'Deleting...' : 'Confirm Delete'}
+                {deleteMutation.isPending ? t('common.loading') : t('common.delete')}
               </button>
             </div>
           </div>

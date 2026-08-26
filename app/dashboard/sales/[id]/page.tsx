@@ -21,8 +21,10 @@ import {
   FormField,
 } from '../../../../components/ui';
 import { Coins, Eye } from 'lucide-react';
+import { useTranslation } from '../../../../provider';
 
 export default function SaleDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
 
@@ -60,11 +62,11 @@ export default function SaleDetailPage() {
   async function handleReceivePayment(e: FormEvent) {
     e.preventDefault();
     if (!s.customer) {
-      setPayError('Cannot record payment for walk-in customer without registered profile.');
+      setPayError(t('payments.select_customer'));
       return;
     }
     if (!payAmount || Number(payAmount) <= 0) {
-      setPayError('Payment amount must be greater than zero.');
+      setPayError(t('payments.amount_greater_zero'));
       return;
     }
 
@@ -109,7 +111,7 @@ export default function SaleDetailPage() {
     return (
       <AuthGuard>
         <Shell>
-          <LoadingSpinner label="Loading sales invoice details…" />
+          <LoadingSpinner label={t('common.loading')} />
         </Shell>
       </AuthGuard>
     );
@@ -134,11 +136,11 @@ export default function SaleDetailPage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title={`Invoice: ${s.invoiceNumber}`}
-            description={`Customer: ${s.customer ? s.customer.name : 'Walk-in Customer'}`}
+            title={`${t('sales.invoice_number')}: ${s.invoiceNumber}`}
+            description={`${t('sales.customer')}: ${s.customer ? s.customer.name : t('common.walk_in_customer')}`}
             breadcrumbs={[
-              { label: 'Dashboard', href: '/dashboard' },
-              { label: 'Sales', href: '/dashboard/sales' },
+              { label: t('common.dashboard'), href: '/dashboard' },
+              { label: t('sales.title'), href: '/dashboard/sales' },
               { label: s.invoiceNumber },
             ]}
             action={
@@ -150,20 +152,20 @@ export default function SaleDetailPage() {
                     onClick={openPayModal}
                     style={{ display: 'flex', alignItems: 'center', gap: 6 }}
                   >
-                    <Coins size={16} /> Receive Due
+                    <Coins size={16} /> {t('payments.receive_due_title')}
                   </button>
                 )}
                 <Link className="primary-button" href={`/dashboard/invoices/${id}`}>
-                  Print / View Invoice
+                  {t('common.view')} {t('sales.invoice_number')}
                 </Link>
                 {s.status === 'DRAFT' && (
                   <button type="button" className="ghost" style={{ color: '#ef4444' }} onClick={() => setCancelOpen(true)}>
-                    Cancel Draft
+                    {t('common.cancel')}
                   </button>
                 )}
                 {s.status === 'CONFIRMED' && (
                   <Link className="ghost" href={`/dashboard/inventory/movements`}>
-                    View Dispatch Logs
+                    {t('inventory.stock_movements')}
                   </Link>
                 )}
               </div>
@@ -173,47 +175,47 @@ export default function SaleDetailPage() {
           {/* Details Grid */}
           <div className="detail-grid">
             <section className="card">
-              <h3>Invoice Information</h3>
+              <h3>{t('documents.sale_details')}</h3>
               <dl>
-                <dt>Invoice Number</dt>
+                <dt>{t('sales.invoice_number')}</dt>
                 <dd>
                   <code>{s.invoiceNumber}</code>
                 </dd>
 
-                <dt>Customer Name</dt>
+                <dt>{t('sales.customer')}</dt>
                 <dd>
                   {s.customer ? (
                     <Link href={`/dashboard/customers/${s.customer.id}`} style={{ color: '#5068e6' }}>
                       {s.customer.name}
                     </Link>
                   ) : (
-                    'Walk-in Customer'
+                    t('common.walk_in_customer')
                   )}
                 </dd>
 
-                <dt>Sale Date</dt>
+                <dt>{t('common.date')}</dt>
                 <dd>
                   <DateDisplay value={s.saleDate} />
                 </dd>
 
-                <dt>Document Status</dt>
+                <dt>{t('common.status')}</dt>
                 <dd>
                   <StatusBadge value={s.status} />
                 </dd>
 
-                <dt>Payment Status</dt>
+                <dt>{t('sales.payment_status')}</dt>
                 <dd>
                   <PaymentStatusBadge value={s.paymentStatus} />
                 </dd>
 
-                <dt>Payment Method</dt>
+                <dt>{t('common.payment_method')}</dt>
                 <dd>{s.paymentMethod || '—'}</dd>
               </dl>
             </section>
 
             <section className="card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                <h3 style={{ margin: 0 }}>Financial Breakdown</h3>
+                <h3 style={{ margin: 0 }}>{t('reports.period_summary')}</h3>
                 {hasDue && (
                   <button
                     type="button"
@@ -229,54 +231,54 @@ export default function SaleDetailPage() {
                       cursor: 'pointer',
                     }}
                   >
-                    + Receive Due
+                    + {t('payments.receive_due_title')}
                   </button>
                 )}
               </div>
               <dl>
-                <dt>Items Subtotal</dt>
+                <dt>{t('common.subtotal')}</dt>
                 <dd>
                   <CurrencyDisplay value={s.subtotal} />
                 </dd>
 
-                <dt>Discount (-)</dt>
+                <dt>{t('common.discount')} (-)</dt>
                 <dd>
                   <CurrencyDisplay value={s.discount} />
                 </dd>
 
-                <dt>Tax (+)</dt>
+                <dt>{t('common.tax')} (+)</dt>
                 <dd>
                   <CurrencyDisplay value={s.tax} />
                 </dd>
 
-                <dt>Shipping (+)</dt>
+                <dt>{t('documents.shipping_charge')} (+)</dt>
                 <dd>
                   <CurrencyDisplay value={s.shipping} />
                 </dd>
 
-                <dt>Grand Total Revenue</dt>
+                <dt>{t('sales.grand_total')}</dt>
                 <dd>
                   <strong style={{ fontSize: 16 }}>
                     <CurrencyDisplay value={s.grandTotal} />
                   </strong>
                 </dd>
 
-                <dt>Cost of Goods Sold (COGS)</dt>
+                <dt>{t('reports.cogs')}</dt>
                 <dd style={{ color: '#71798d' }}>
                   <CurrencyDisplay value={s.cogs} />
                 </dd>
 
-                <dt>Gross Margin</dt>
+                <dt>{t('reports.gross_profit')}</dt>
                 <dd style={{ color: grossProfit >= 0 ? '#188b64' : '#bd5664', fontWeight: 700 }}>
                   <CurrencyDisplay value={grossProfit} />
                 </dd>
 
-                <dt>Paid Amount</dt>
+                <dt>{t('sales.paid_amount')}</dt>
                 <dd style={{ color: '#188b64', fontWeight: 600 }}>
                   <CurrencyDisplay value={s.paidAmount} />
                 </dd>
 
-                <dt>Outstanding Due</dt>
+                <dt>{t('sales.due_amount')}</dt>
                 <dd style={{ color: Number(s.dueAmount) > 0 ? '#ef4444' : '#188b64', fontWeight: 700 }}>
                   <CurrencyDisplay value={s.dueAmount} />
                 </dd>
@@ -288,11 +290,22 @@ export default function SaleDetailPage() {
           <section className="card">
             <div className="card-head">
               <div>
-                <h3>Sold Products</h3>
-                <p>Line items with unit cost and margins</p>
+                <h3>{t('products.title')}</h3>
+                <p>{t('documents.line_items')}</p>
               </div>
             </div>
-            <DataTable columns={['Product', 'SKU', 'Quantity', 'Unit Price', 'Unit Cost (COGS)', 'Discount', 'Tax', 'Total']}>
+            <DataTable
+              columns={[
+                t('products.name'),
+                t('products.sku'),
+                t('documents.qty'),
+                t('documents.unit_price'),
+                t('reports.cogs'),
+                t('common.discount'),
+                t('common.tax'),
+                t('common.grand_total'),
+              ]}
+            >
               {s.items.map((i: any) => (
                 <tr key={i.id}>
                   <td>
@@ -335,11 +348,19 @@ export default function SaleDetailPage() {
             <section className="card">
               <div className="card-head">
                 <div>
-                  <h3>Customer Payment Receipts</h3>
-                  <p>Payments received against this sale</p>
+                  <h3>{t('payments.customer_collections')}</h3>
+                  <p>{t('payments.title')}</p>
                 </div>
               </div>
-              <DataTable columns={['Date', 'Amount', 'Payment Method', 'Reference', 'Notes']}>
+              <DataTable
+                columns={[
+                  t('common.date'),
+                  t('common.amount'),
+                  t('common.payment_method'),
+                  t('activity_logs.reference'),
+                  t('common.description'),
+                ]}
+              >
                 {s.payments.map((pm: any) => (
                   <tr key={pm.id}>
                     <td>
@@ -363,7 +384,7 @@ export default function SaleDetailPage() {
 
           {s.notes && (
             <section className="card">
-              <h3>Invoice Notes</h3>
+              <h3>{t('documents.internal_notes')}</h3>
               <p style={{ color: '#555e75', margin: 0 }}>{s.notes}</p>
             </section>
           )}
@@ -372,23 +393,23 @@ export default function SaleDetailPage() {
           {payModalOpen && (
             <div className="dialog-backdrop">
               <div className="dialog" style={{ width: 'min(100%, 500px)' }}>
-                <h3>Receive Customer Due Payment</h3>
+                <h3>{t('payments.receive_due_title')}</h3>
                 <p style={{ margin: '4px 0 16px', fontSize: 13, color: '#64748b' }}>
-                  Collect outstanding balance from <strong>{s.customer?.name}</strong> for Invoice #{s.invoiceNumber}.
+                  {s.customer?.name} · {s.invoiceNumber}
                 </p>
 
                 <form onSubmit={handleReceivePayment} style={{ display: 'grid', gap: 14 }}>
                   <div style={{ padding: 12, background: '#f8fafc', borderRadius: 8, fontSize: 13, border: '1px solid #e2e8f0' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <span style={{ color: '#64748b' }}>Invoice Number:</span>
+                      <span style={{ color: '#64748b' }}>{t('sales.invoice_number')}:</span>
                       <strong>{s.invoiceNumber}</strong>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <span style={{ color: '#64748b' }}>Customer:</span>
+                      <span style={{ color: '#64748b' }}>{t('sales.customer')}:</span>
                       <strong>{s.customer?.name}</strong>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ color: '#64748b' }}>Current Outstanding Due:</span>
+                      <span style={{ color: '#64748b' }}>{t('sales.due_amount')}:</span>
                       <strong style={{ color: '#ef4444', fontSize: 15 }}>
                         <CurrencyDisplay value={s.dueAmount} />
                       </strong>
@@ -396,7 +417,7 @@ export default function SaleDetailPage() {
                   </div>
 
                   <div className="form-grid">
-                    <FormField label="Amount Received (BDT)" required>
+                    <FormField label={`${t('common.amount')} (${t('common.bdt')})`} required>
                       <input
                         required
                         min="0.01"
@@ -408,11 +429,21 @@ export default function SaleDetailPage() {
                       />
                     </FormField>
 
-                    <FormField label="Payment Method" required>
+                    <FormField label={t('common.payment_method')} required>
                       <select value={payMethod} onChange={(e) => setPayMethod(e.target.value)}>
                         {['CASH', 'BANK', 'BKASH', 'NAGAD', 'CARD', 'OTHER'].map((m) => (
                           <option key={m} value={m}>
-                            {m}
+                            {m === 'CASH'
+                              ? t('common.cash')
+                              : m === 'BANK'
+                              ? t('common.bank')
+                              : m === 'BKASH'
+                              ? t('common.bkash')
+                              : m === 'NAGAD'
+                              ? t('common.nagad')
+                              : m === 'CARD'
+                              ? t('common.card')
+                              : t('common.other')}
                           </option>
                         ))}
                       </select>
@@ -420,7 +451,7 @@ export default function SaleDetailPage() {
                   </div>
 
                   <div className="form-grid">
-                    <FormField label="Collection Date & Time" required>
+                    <FormField label={t('common.date')} required>
                       <input
                         required
                         type="datetime-local"
@@ -429,7 +460,7 @@ export default function SaleDetailPage() {
                       />
                     </FormField>
 
-                    <FormField label="Transaction / Cheque Reference">
+                    <FormField label={t('activity_logs.reference')}>
                       <input
                         value={payReference}
                         onChange={(e) => setPayReference(e.target.value)}
@@ -438,11 +469,11 @@ export default function SaleDetailPage() {
                     </FormField>
                   </div>
 
-                  <FormField label="Notes">
+                  <FormField label={t('common.description')}>
                     <textarea
                       value={payNote}
                       onChange={(e) => setPayNote(e.target.value)}
-                      placeholder="Optional notes or remarks…"
+                      placeholder={t('common.description')}
                       style={{ minHeight: 60 }}
                     />
                   </FormField>
@@ -451,10 +482,10 @@ export default function SaleDetailPage() {
 
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 8 }}>
                     <button type="button" onClick={() => setPayModalOpen(false)}>
-                      Cancel
+                      {t('common.cancel')}
                     </button>
                     <button type="submit" className="primary-button" disabled={paySaving}>
-                      {paySaving ? 'Recording…' : 'Confirm Collection'}
+                      {paySaving ? t('common.saving') : t('payments.receive_due_title')}
                     </button>
                   </div>
                 </form>
@@ -465,13 +496,13 @@ export default function SaleDetailPage() {
           {/* Confirm Cancel Dialog */}
           <ConfirmDialog
             open={cancelOpen}
-            title="Cancel Draft Sale"
+            title={t('common.cancel')}
             danger={true}
-            confirmLabel={cancelling ? 'Cancelling…' : 'Yes, Cancel Invoice'}
+            confirmLabel={cancelling ? t('common.loading') : t('status.cancelled')}
             onConfirm={handleCancel}
             onCancel={() => setCancelOpen(false)}
           >
-            Are you sure you want to cancel this draft sales invoice? This action cannot be undone.
+            {t('common.delete_confirm')}
           </ConfirmDialog>
         </PageContainer>
       </Shell>

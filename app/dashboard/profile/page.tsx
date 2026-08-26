@@ -5,8 +5,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../../lib/api';
 import { PageContainer, PageHeader } from '../../../components/ui';
 import { User, Shield, Key, Camera, Check, AlertCircle, Clock, Calendar, Mail, Phone } from 'lucide-react';
+import { useTranslation } from '../../../provider';
 
 export default function ProfilePage() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const { data: profile, isLoading } = useQuery<any>({
@@ -130,7 +132,7 @@ export default function ProfilePage() {
     return (
       <PageContainer>
         <div className="skeleton" style={{ height: 300 }}>
-          Loading profile...
+          {t('common.loading')}
         </div>
       </PageContainer>
     );
@@ -139,12 +141,12 @@ export default function ProfilePage() {
   return (
     <PageContainer>
       <PageHeader
-        title="My Profile & Security"
-        description="Manage your personal account details, avatar, and authentication security."
+        title={t('nav.my_profile')}
+        description={t('users.description')}
         breadcrumbs={[
-          { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Settings', href: '/dashboard/settings' },
-          { label: 'My Profile' },
+          { label: t('common.dashboard'), href: '/dashboard' },
+          { label: t('settings.title'), href: '/dashboard/settings' },
+          { label: t('nav.my_profile') },
         ]}
       />
 
@@ -153,7 +155,7 @@ export default function ProfilePage() {
         <div className="card" style={{ padding: 28 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
             <User size={20} color="#6366f1" />
-            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>Profile Information</h3>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>{t('nav.my_profile')}</h3>
           </div>
 
           {profileMsg && (
@@ -242,44 +244,44 @@ export default function ProfilePage() {
             </div>
 
             <div>
-              <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>{form.name || 'User Profile'}</div>
+              <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>{form.name || t('users.user')}</div>
               <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
                 <span className="pill" style={{ background: '#ede9fe', color: '#5b21b6' }}>
                   {profile?.roleName || profile?.role || 'Admin'}
                 </span>
                 <span className={`pill ${profile?.status === 'ACTIVE' ? 'success' : ''}`}>
-                  {profile?.status || 'ACTIVE'}
+                  {profile?.status === 'ACTIVE' ? t('status.active') : profile?.status || t('status.active')}
                 </span>
               </div>
-              {uploadingImage && <small style={{ color: '#6366f1', display: 'block', marginTop: 4 }}>Uploading photo...</small>}
+              {uploadingImage && <small style={{ color: '#6366f1', display: 'block', marginTop: 4 }}>{t('common.loading')}</small>}
             </div>
           </div>
 
           <form onSubmit={handleSaveProfile} style={{ display: 'grid', gap: 16 }}>
             <div className="form-field">
-              <label>Full Name *</label>
+              <label>{t('users.user_name')} *</label>
               <input
                 type="text"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 required
-                placeholder="Your full name"
+                placeholder={t('users.user_name')}
               />
             </div>
 
             <div className="form-field">
-              <label>Email Address *</label>
+              <label>{t('common.email')} *</label>
               <input
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 required
-                placeholder="name@company.com"
+                placeholder={t('common.email')}
               />
             </div>
 
             <div className="form-field">
-              <label>Phone Number</label>
+              <label>{t('common.phone')}</label>
               <input
                 type="tel"
                 value={form.phone}
@@ -290,7 +292,7 @@ export default function ProfilePage() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <div className="form-field">
-                <label>Assigned Role (Fixed)</label>
+                <label>{t('users.role')}</label>
                 <input
                   type="text"
                   value={profile?.roleName || profile?.role || 'Admin'}
@@ -300,10 +302,10 @@ export default function ProfilePage() {
               </div>
 
               <div className="form-field">
-                <label>Account Status</label>
+                <label>{t('common.status')}</label>
                 <input
                   type="text"
-                  value={profile?.status || 'ACTIVE'}
+                  value={profile?.status === 'ACTIVE' ? t('status.active') : profile?.status || t('status.active')}
                   disabled
                   style={{ background: '#f8fafc', color: '#64748b', cursor: 'not-allowed' }}
                 />
@@ -314,11 +316,11 @@ export default function ProfilePage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderTop: '1px solid #f1f5f9', fontSize: '0.78rem', color: '#64748b' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                 <Calendar size={13} />
-                <span>Joined: {profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString() : '—'}</span>
+                <span>{t('common.date')}: {profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString() : '—'}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                 <Clock size={13} />
-                <span>Last login: {profile?.lastLoginAt ? new Date(profile.lastLoginAt).toLocaleString() : 'Just now'}</span>
+                <span>{t('users.last_active')}: {profile?.lastLoginAt ? new Date(profile.lastLoginAt).toLocaleString() : 'Just now'}</span>
               </div>
             </div>
 
@@ -329,7 +331,7 @@ export default function ProfilePage() {
                 disabled={updateProfileMutation.isPending}
                 style={{ padding: '10px 22px' }}
               >
-                {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
+                {updateProfileMutation.isPending ? t('common.saving') : t('common.save')}
               </button>
             </div>
           </form>
@@ -339,11 +341,11 @@ export default function ProfilePage() {
         <div className="card" style={{ padding: 28 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
             <Key size={20} color="#f59e0b" />
-            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>Change Password</h3>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>{t('settings.admin_password')}</h3>
           </div>
 
           <p style={{ fontSize: '0.84rem', color: '#64748b', margin: '0 0 18px' }}>
-            Ensure your account is protected with a secure password containing at least 6 characters.
+            {t('settings.admin_password_desc')}
           </p>
 
           {passwordMsg && (
@@ -368,35 +370,35 @@ export default function ProfilePage() {
 
           <form onSubmit={handleChangePassword} style={{ display: 'grid', gap: 16 }}>
             <div className="form-field">
-              <label>Current Password *</label>
+              <label>{t('settings.current_password')} *</label>
               <input
                 type="password"
                 value={passwordForm.currentPassword}
                 onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
                 required
-                placeholder="Enter current password"
+                placeholder={t('settings.current_password')}
               />
             </div>
 
             <div className="form-field">
-              <label>New Password *</label>
+              <label>{t('settings.new_password')} *</label>
               <input
                 type="password"
                 value={passwordForm.newPassword}
                 onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
                 required
-                placeholder="Minimum 6 characters"
+                placeholder={t('settings.new_password')}
               />
             </div>
 
             <div className="form-field">
-              <label>Confirm New Password *</label>
+              <label>{t('settings.confirm_password')} *</label>
               <input
                 type="password"
                 value={passwordForm.confirmPassword}
                 onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
                 required
-                placeholder="Re-enter new password"
+                placeholder={t('settings.confirm_password')}
               />
             </div>
 
@@ -407,7 +409,7 @@ export default function ProfilePage() {
                 disabled={changePasswordMutation.isPending}
                 style={{ padding: '10px 22px', background: '#4338ca' }}
               >
-                {changePasswordMutation.isPending ? 'Updating Password...' : 'Change Password'}
+                {changePasswordMutation.isPending ? t('common.saving') : t('common.save')}
               </button>
             </div>
           </form>

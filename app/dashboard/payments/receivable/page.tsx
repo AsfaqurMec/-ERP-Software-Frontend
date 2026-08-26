@@ -74,11 +74,11 @@ export default function CustomerDuePage() {
   async function handleReceivePayment(e: FormEvent) {
     e.preventDefault();
     if (!selectedSale || !selectedSale.customer) {
-      setPayError('Cannot record payment: Customer details missing on walk-in sale.');
+      setPayError(t('common.error'));
       return;
     }
     if (!payAmount || Number(payAmount) <= 0) {
-      setPayError('Payment amount must be greater than zero.');
+      setPayError(t('payments.amount'));
       return;
     }
 
@@ -107,7 +107,7 @@ export default function CustomerDuePage() {
       dueSalesQuery.refetch();
       overviewQuery.refetch();
     } catch (err) {
-      setPayError(err instanceof Error ? err.message : 'Failed to record customer collection.');
+      setPayError(err instanceof Error ? err.message : t('common.error'));
     } finally {
       setPaySaving(false);
     }
@@ -118,35 +118,35 @@ export default function CustomerDuePage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title="Customer Due & Receivables"
-            description="Manage all sales orders with outstanding balances and collect customer dues."
+            title={t('dues.customer_due_title')}
+            description={t('dues.customer_due_desc')}
             breadcrumbs={[
-              { label: 'Dashboard', href: '/dashboard' },
-              { label: 'Finance & Accounts', href: '/dashboard/payments' },
-              { label: 'Customer Due' },
+              { label: t('common.dashboard'), href: '/dashboard' },
+              { label: t('payments.title'), href: '/dashboard/payments' },
+              { label: t('dues.customer_due_title') },
             ]}
           />
 
           {ov && (
             <StatCardGrid columns={3}>
               <StatCard
-                label="Total Outstanding Customer Due"
+                label={t('dues.total_receivable')}
                 value={<CurrencyDisplay value={ov.totalReceivable} />}
-                detail="Aggregate unpaid customer receivables"
+                detail={t('dashboard.receivable_due')}
                 icon={<Coins color="#d28d2b" size={20} />}
                 kind="amber"
               />
               <StatCard
-                label="Collected Today"
+                label={t('payments.collected_today')}
                 value={<CurrencyDisplay value={ov.receivedToday} />}
-                detail="Cash & digital collections received today"
+                detail={t('payments.customer_collections')}
                 icon={<ArrowDownLeft color="#28a476" size={20} />}
                 kind="green"
               />
               <StatCard
-                label="Due Orders Count"
+                label={t('dues.due_orders_count')}
                 value={String(dueSalesQuery.data?.meta.total ?? '—')}
-                detail="Active sales invoices with pending due"
+                detail={t('sales.title')}
                 icon={<ReceiptText color="#6366f1" size={20} />}
                 kind="blue"
               />
@@ -160,26 +160,26 @@ export default function CustomerDuePage() {
                 setSearch(v);
                 setPage(1);
               }}
-              placeholder="Search invoice number, customer name, phone, or area…"
+              placeholder={t('sales.search_placeholder')}
             />
           </DataTableToolbar>
 
           {dueSalesQuery.isLoading ? (
-            <LoadingSpinner label="Loading customer due sales orders…" />
+            <LoadingSpinner label={t('common.loading')} />
           ) : dueSalesQuery.error ? (
             <div className="error">{dueSalesQuery.error.message}</div>
           ) : (
             <>
               <DataTable
                 columns={[
-                  'Invoice #',
-                  'Sale Date',
-                  'Customer',
-                  'Grand Total',
-                  'Paid Amount',
-                  'Outstanding Due',
-                  'Payment Status',
-                  'Actions',
+                  t('sales.invoice_number'),
+                  t('common.date'),
+                  t('sales.customer'),
+                  t('sales.grand_total'),
+                  t('sales.paid_amount'),
+                  t('sales.due_amount'),
+                  t('sales.payment_status'),
+                  t('common.actions'),
                 ]}
               >
                 {dueSalesQuery.data?.data.length ? (
@@ -206,7 +206,7 @@ export default function CustomerDuePage() {
                             )}
                           </div>
                         ) : (
-                          <span style={{ color: '#64748b' }}>Walk-in Customer</span>
+                          <span style={{ color: '#64748b' }}>{t('common.walk_in_customer')}</span>
                         )}
                       </td>
                       <td>
@@ -239,9 +239,9 @@ export default function CustomerDuePage() {
                                 fontSize: 12,
                                 gap: 4,
                               }}
-                              title="Receive customer due payment"
+                              title={t('dues.receive_due')}
                             >
-                              <Coins size={14} /> Receive Due
+                              <Coins size={14} /> {t('dues.receive_due')}
                             </button>
                           )}
                           <Link
@@ -255,9 +255,9 @@ export default function CustomerDuePage() {
                               gap: 4,
                               textDecoration: 'none',
                             }}
-                            title="View sale invoice details"
+                            title={t('common.view')}
                           >
-                            <Eye size={14} /> View Order
+                            <Eye size={14} /> {t('common.view')}
                           </Link>
                         </div>
                       </td>
@@ -266,7 +266,7 @@ export default function CustomerDuePage() {
                 ) : (
                   <tr>
                     <td colSpan={8}>
-                      <EmptyTableState message="No sales orders with outstanding due found." />
+                      <EmptyTableState message={t('dues.no_due_records')} />
                     </td>
                   </tr>
                 )}
@@ -286,23 +286,23 @@ export default function CustomerDuePage() {
           {selectedSale && (
             <div className="dialog-backdrop">
               <div className="dialog" style={{ width: 'min(100%, 520px)' }}>
-                <h3>Receive Customer Due Payment</h3>
+                <h3>{t('dues.receive_due')}</h3>
                 <p style={{ margin: '4px 0 16px', fontSize: 13, color: '#64748b' }}>
-                  Collect outstanding balance from <strong>{selectedSale.customer?.name}</strong> for Invoice #{selectedSale.invoiceNumber}.
+                  {t('dues.customer_due_desc')}
                 </p>
 
                 <form onSubmit={handleReceivePayment} style={{ display: 'grid', gap: 14 }}>
                   <div style={{ padding: 12, background: '#f8fafc', borderRadius: 8, fontSize: 13, border: '1px solid #e2e8f0' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <span style={{ color: '#64748b' }}>Invoice Number:</span>
+                      <span style={{ color: '#64748b' }}>{t('sales.invoice_number')}:</span>
                       <strong>{selectedSale.invoiceNumber}</strong>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <span style={{ color: '#64748b' }}>Customer:</span>
+                      <span style={{ color: '#64748b' }}>{t('sales.customer')}:</span>
                       <strong>{selectedSale.customer?.name}</strong>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ color: '#64748b' }}>Outstanding Due on Invoice:</span>
+                      <span style={{ color: '#64748b' }}>{t('sales.due_amount')}:</span>
                       <strong style={{ color: '#ef4444', fontSize: 15 }}>
                         <CurrencyDisplay value={selectedSale.dueAmount} />
                       </strong>
@@ -310,7 +310,7 @@ export default function CustomerDuePage() {
                   </div>
 
                   <div className="form-grid">
-                    <FormField label="Amount Received (BDT)" required>
+                    <FormField label={t('payments.amount')} required>
                       <input
                         required
                         min="0.01"
@@ -322,7 +322,7 @@ export default function CustomerDuePage() {
                       />
                     </FormField>
 
-                    <FormField label="Payment Method" required>
+                    <FormField label={t('payments.payment_method')} required>
                       <select value={payMethod} onChange={(e) => setPayMethod(e.target.value)}>
                         {['CASH', 'BANK', 'BKASH', 'NAGAD', 'CARD', 'OTHER'].map((m) => (
                           <option key={m} value={m}>
@@ -334,7 +334,7 @@ export default function CustomerDuePage() {
                   </div>
 
                   <div className="form-grid">
-                    <FormField label="Collection Date & Time" required>
+                    <FormField label={t('common.date_time')} required>
                       <input
                         required
                         type="datetime-local"
@@ -343,20 +343,20 @@ export default function CustomerDuePage() {
                       />
                     </FormField>
 
-                    <FormField label="Reference / Cheque / Trx ID">
+                    <FormField label={t('payments.reference')}>
                       <input
                         value={payReference}
                         onChange={(e) => setPayReference(e.target.value)}
-                        placeholder="e.g. Trx-998822 or Cheque #"
+                        placeholder="Trx ID / Ref"
                       />
                     </FormField>
                   </div>
 
-                  <FormField label="Notes / Remarks">
+                  <FormField label={t('common.notes')}>
                     <textarea
                       value={payNote}
                       onChange={(e) => setPayNote(e.target.value)}
-                      placeholder="Optional receipt notes or bank details…"
+                      placeholder={t('common.notes')}
                       style={{ minHeight: 60 }}
                     />
                   </FormField>
@@ -365,10 +365,10 @@ export default function CustomerDuePage() {
 
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 8 }}>
                     <button type="button" onClick={() => setSelectedSale(null)}>
-                      Cancel
+                      {t('common.cancel')}
                     </button>
                     <button type="submit" className="primary-button" disabled={paySaving}>
-                      {paySaving ? 'Processing…' : 'Confirm Collection'}
+                      {paySaving ? t('common.processing') : t('common.save')}
                     </button>
                   </div>
                 </form>

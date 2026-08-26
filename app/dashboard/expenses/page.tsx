@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../components/auth-guard';
 import { Shell } from '../../../components/shell';
 import { api } from '../../../lib/api';
+import { useTranslation } from '../../../provider';
 import {
   CurrencyDisplay,
   DataTable,
@@ -22,6 +23,7 @@ import {
 } from '../../../components/ui';
 
 export default function ExpensesPage() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [search, setSearch] = useState('');
@@ -66,7 +68,7 @@ export default function ExpensesPage() {
   async function handleRecordExpense(e: FormEvent) {
     e.preventDefault();
     if (!expAmount || Number(expAmount) <= 0) {
-      setExpError('Amount must be greater than zero.');
+      setExpError(t('expenses.amount'));
       return;
     }
 
@@ -92,7 +94,7 @@ export default function ExpensesPage() {
       setExpNote('');
       expensesQuery.refetch();
     } catch (err) {
-      setExpError(err instanceof Error ? err.message : 'Could not save expense.');
+      setExpError(err instanceof Error ? err.message : t('common.error'));
     } finally {
       setExpSaving(false);
     }
@@ -103,12 +105,12 @@ export default function ExpensesPage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title="Operating Expenses"
-            description="Record and analyze operational expenditures across your business facilities."
-            breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Expenses' }]}
+            title={t('expenses.title')}
+            description={t('expenses.description')}
+            breadcrumbs={[{ label: t('common.dashboard'), href: '/dashboard' }, { label: t('expenses.title') }]}
             action={
               <button type="button" className="primary-button" onClick={() => setModalOpen(true)}>
-                + Record Expense
+                {t('expenses.add_expense')}
               </button>
             }
           />
@@ -120,11 +122,11 @@ export default function ExpensesPage() {
                 setSearch(v);
                 setPage(1);
               }}
-              placeholder="Search description, note or category…"
+              placeholder={t('expenses.search_placeholder')}
             />
 
             <FilterDropdown
-              label="All Expense Categories"
+              label={t('expenses.all_categories')}
               value={category}
               onChange={(v) => {
                 setCategory(v);
@@ -135,12 +137,21 @@ export default function ExpensesPage() {
           </DataTableToolbar>
 
           {expensesQuery.isLoading ? (
-            <LoadingSpinner label="Loading operating expenses…" />
+            <LoadingSpinner label={t('common.loading')} />
           ) : expensesQuery.error ? (
             <div className="error">{expensesQuery.error.message}</div>
           ) : (
             <>
-              <DataTable columns={['Date', 'Category', 'Amount', 'Payment Method', 'Description', 'Notes']}>
+              <DataTable
+                columns={[
+                  t('common.date'),
+                  t('expenses.category'),
+                  t('expenses.amount'),
+                  t('expenses.payment_method'),
+                  t('expenses.description_label'),
+                  t('common.notes'),
+                ]}
+              >
                 {expensesQuery.data?.data.length ? (
                   expensesQuery.data.data.map((e: any) => (
                     <tr key={e.id}>
@@ -165,7 +176,7 @@ export default function ExpensesPage() {
                 ) : (
                   <tr>
                     <td colSpan={6}>
-                      <EmptyTableState message="No expense records found." />
+                      <EmptyTableState message={t('expenses.no_expenses_found')} />
                     </td>
                   </tr>
                 )}
@@ -185,14 +196,14 @@ export default function ExpensesPage() {
           {modalOpen && (
             <div className="dialog-backdrop">
               <div className="dialog" style={{ width: 'min(100%, 520px)' }}>
-                <h3>Record Operating Expense</h3>
+                <h3>{t('expenses.add_expense')}</h3>
                 <p style={{ margin: '4px 0 16px', fontSize: 13, color: '#64748b' }}>
-                  Add an expense entry to deduct from your gross profit calculations.
+                  {t('expenses.description')}
                 </p>
 
                 <form onSubmit={handleRecordExpense} style={{ display: 'grid', gap: 14 }}>
                   <div className="form-grid">
-                    <FormField label="Expense Category" required>
+                    <FormField label={t('expenses.category')} required>
                       <select value={expCategory} onChange={(e) => setExpCategory(e.target.value)}>
                         {categories.map((c) => (
                           <option key={c} value={c}>
@@ -202,7 +213,7 @@ export default function ExpensesPage() {
                       </select>
                     </FormField>
 
-                    <FormField label="Amount (BDT)" required>
+                    <FormField label={t('expenses.amount')} required>
                       <input
                         required
                         min="0.01"
@@ -216,7 +227,7 @@ export default function ExpensesPage() {
                   </div>
 
                   <div className="form-grid">
-                    <FormField label="Date & Time" required>
+                    <FormField label={t('common.date_time')} required>
                       <input
                         required
                         type="datetime-local"
@@ -225,7 +236,7 @@ export default function ExpensesPage() {
                       />
                     </FormField>
 
-                    <FormField label="Payment Method" required>
+                    <FormField label={t('expenses.payment_method')} required>
                       <select value={expMethod} onChange={(e) => setExpMethod(e.target.value)}>
                         {['CASH', 'BANK', 'BKASH', 'NAGAD', 'CARD', 'OTHER'].map((m) => (
                           <option key={m} value={m}>
@@ -236,19 +247,19 @@ export default function ExpensesPage() {
                     </FormField>
                   </div>
 
-                  <FormField label="Description / Vendor">
+                  <FormField label={t('expenses.description_label')}>
                     <input
                       value={expDesc}
                       onChange={(e) => setExpDesc(e.target.value)}
-                      placeholder="e.g. Electricity bill for main office"
+                      placeholder={t('expenses.description_placeholder')}
                     />
                   </FormField>
 
-                  <FormField label="Additional Notes">
+                  <FormField label={t('common.notes')}>
                     <textarea
                       value={expNote}
                       onChange={(e) => setExpNote(e.target.value)}
-                      placeholder="Optional notes or receipt references…"
+                      placeholder={t('common.notes')}
                       style={{ minHeight: 60 }}
                     />
                   </FormField>
@@ -257,10 +268,10 @@ export default function ExpensesPage() {
 
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 8 }}>
                     <button type="button" onClick={() => setModalOpen(false)}>
-                      Cancel
+                      {t('common.cancel')}
                     </button>
                     <button className="primary-button" disabled={expSaving}>
-                      {expSaving ? 'Saving…' : 'Record Expense'}
+                      {expSaving ? t('common.saving') : t('expenses.add_expense')}
                     </button>
                   </div>
                 </form>

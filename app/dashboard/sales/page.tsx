@@ -7,6 +7,7 @@ import { AuthGuard } from '../../../components/auth-guard';
 import { Shell } from '../../../components/shell';
 import { ExportMenu } from '../../../components/export-menu';
 import { api } from '../../../lib/api';
+import { useTranslation } from '../../../provider';
 import {
   CurrencyDisplay,
   DataTable,
@@ -24,6 +25,7 @@ import {
 } from '../../../components/ui';
 
 export default function SalesPage() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [search, setSearch] = useState('');
@@ -48,27 +50,27 @@ export default function SalesPage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title="Sales Invoices"
-            description="Manage customer invoices, order fulfillments, payment receipts and accounts receivable."
-            breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Sales' }]}
+            title={t('sales.title')}
+            description={t('sales.description')}
+            breadcrumbs={[{ label: t('common.dashboard'), href: '/dashboard' }, { label: t('sales.title') }]}
             action={
               <div style={{ display: 'flex', gap: 8 }}>
                 <ExportMenu
                   filename="StockPilot_Sales_Invoices"
                   columns={[
-                    { header: 'Invoice Number', key: 'invoiceNumber' },
-                    { header: 'Customer', key: 'customer.name', formatter: (r) => r.customer?.name || 'Walk-in Client' },
-                    { header: 'Date', key: 'saleDate' },
-                    { header: 'Grand Total', key: 'grandTotal' },
-                    { header: 'Paid Amount', key: 'paidAmount' },
-                    { header: 'Due Balance', key: 'dueAmount' },
-                    { header: 'Doc Status', key: 'status' },
-                    { header: 'Payment Status', key: 'paymentStatus' },
+                    { header: t('sales.invoice_number'), key: 'invoiceNumber' },
+                    { header: t('sales.customer'), key: 'customer.name', formatter: (r) => r.customer?.name || t('common.walk_in_customer') },
+                    { header: t('common.date'), key: 'saleDate' },
+                    { header: t('sales.grand_total'), key: 'grandTotal' },
+                    { header: t('sales.paid_amount'), key: 'paidAmount' },
+                    { header: t('sales.due_amount'), key: 'dueAmount' },
+                    { header: t('sales.doc_status'), key: 'status' },
+                    { header: t('sales.payment_status'), key: 'paymentStatus' },
                   ]}
                   data={salesQuery.data?.data || []}
                 />
                 <Link className="primary-button" href="/dashboard/sales/create">
-                  + Create Sale
+                  {t('sales.create_sale')}
                 </Link>
               </div>
             }
@@ -81,55 +83,55 @@ export default function SalesPage() {
                 setSearch(v);
                 setPage(1);
               }}
-              placeholder="Search invoice #, customer name…"
+              placeholder={t('sales.search_placeholder')}
             />
 
             <FilterDropdown
-              label="All Document Statuses"
+              label={`${t('common.all')} ${t('sales.doc_status')}`}
               value={status}
               onChange={(v) => {
                 setStatus(v);
                 setPage(1);
               }}
               options={[
-                { label: 'Confirmed (Stock Reduced)', value: 'CONFIRMED' },
-                { label: 'Draft', value: 'DRAFT' },
-                { label: 'Cancelled', value: 'CANCELLED' },
+                { label: t('status.confirmed'), value: 'CONFIRMED' },
+                { label: t('status.draft'), value: 'DRAFT' },
+                { label: t('status.cancelled'), value: 'CANCELLED' },
               ]}
             />
 
             <FilterDropdown
-              label="All Payment Statuses"
+              label={`${t('common.all')} ${t('sales.payment_status')}`}
               value={paymentStatus}
               onChange={(v) => {
                 setPaymentStatus(v);
                 setPage(1);
               }}
               options={[
-                { label: 'Paid', value: 'PAID' },
-                { label: 'Partial Due', value: 'PARTIAL' },
-                { label: 'Unpaid', value: 'UNPAID' },
+                { label: t('status.paid'), value: 'PAID' },
+                { label: t('status.partial'), value: 'PARTIAL' },
+                { label: t('status.unpaid'), value: 'UNPAID' },
               ]}
             />
           </DataTableToolbar>
 
           {salesQuery.isLoading ? (
-            <LoadingSpinner label="Loading sales invoices…" />
+            <LoadingSpinner label={t('common.loading')} />
           ) : salesQuery.error ? (
             <div className="error">{salesQuery.error.message}</div>
           ) : (
             <>
               <DataTable
                 columns={[
-                  'Invoice #',
-                  'Customer',
-                  'Date',
-                  'Grand Total',
-                  'Paid Amount',
-                  'Due Amount',
-                  'Payment',
-                  'Status',
-                  'Actions',
+                  t('sales.invoice_number'),
+                  t('sales.customer'),
+                  t('common.date'),
+                  t('sales.grand_total'),
+                  t('sales.paid_amount'),
+                  t('sales.due_amount'),
+                  t('sales.payment_status'),
+                  t('sales.doc_status'),
+                  t('common.actions'),
                 ]}
               >
                 {salesQuery.data?.data.length ? (
@@ -138,7 +140,7 @@ export default function SalesPage() {
                       <td>
                         <strong>{s.invoiceNumber}</strong>
                       </td>
-                      <td>{s.customer ? s.customer.name : <span style={{ color: '#8c93a8' }}>Walk-in Customer</span>}</td>
+                      <td>{s.customer ? s.customer.name : <span style={{ color: '#8c93a8' }}>{t('common.walk_in_customer')}</span>}</td>
                       <td>
                         <DateDisplay value={s.saleDate} />
                       </td>
@@ -162,14 +164,14 @@ export default function SalesPage() {
                         <StatusBadge value={s.status} />
                       </td>
                       <td>
-                        <Link href={`/dashboard/sales/${s.id}`}>View Details</Link>
+                        <Link href={`/dashboard/sales/${s.id}`}>{t('common.view_details')}</Link>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
                     <td colSpan={9}>
-                      <EmptyTableState message="No sales invoices found matching your criteria." />
+                      <EmptyTableState message={t('sales.no_sales_found')} />
                     </td>
                   </tr>
                 )}

@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../components/auth-guard';
 import { Shell } from '../../../components/shell';
 import { api } from '../../../lib/api';
+import { useTranslation } from '../../../provider';
 import {
   CurrencyDisplay,
   DataTable,
@@ -20,6 +21,7 @@ import {
 } from '../../../components/ui';
 
 export default function CustomersPage() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [search, setSearch] = useState('');
@@ -40,12 +42,12 @@ export default function CustomersPage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title="Customers"
-            description="Manage client accounts, invoices, payment history and outstanding receivables."
-            breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Customers' }]}
+            title={t('customers.title')}
+            description={t('customers.description')}
+            breadcrumbs={[{ label: t('common.dashboard'), href: '/dashboard' }, { label: t('customers.title') }]}
             action={
               <Link className="primary-button" href="/dashboard/customers/create">
-                + Add Customer
+                {t('customers.add_customer')}
               </Link>
             }
           />
@@ -57,24 +59,24 @@ export default function CustomersPage() {
                 setSearch(v);
                 setPage(1);
               }}
-              placeholder="Search customer name, phone, or email…"
+              placeholder={t('customers.search_placeholder')}
             />
           </DataTableToolbar>
 
           {customersQuery.isLoading ? (
-            <LoadingSpinner label="Loading customer accounts…" />
+            <LoadingSpinner label={t('common.loading')} />
           ) : customersQuery.error ? (
             <div className="error">{customersQuery.error.message}</div>
           ) : (
             <>
               <DataTable
                 columns={[
-                  'Customer Name',
-                  'Phone',
-                  'Email',
-                  'Outstanding Due Balance',
-                  'Status',
-                  'Actions',
+                  t('customers.customer_name'),
+                  t('common.phone'),
+                  t('common.email'),
+                  t('customers.outstanding_due'),
+                  t('common.status'),
+                  t('common.actions'),
                 ]}
               >
                 {customersQuery.data?.data.length ? (
@@ -94,15 +96,15 @@ export default function CustomersPage() {
                         <StatusBadge value={c.status} />
                       </td>
                       <td>
-                        <Link href={`/dashboard/customers/${c.id}`}>View Details</Link> ·{' '}
-                        <Link href={`/dashboard/customers/${c.id}/edit`}>Edit</Link>
+                        <Link href={`/dashboard/customers/${c.id}`}>{t('common.view_details')}</Link> ·{' '}
+                        <Link href={`/dashboard/customers/${c.id}/edit`}>{t('common.edit')}</Link>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
                     <td colSpan={6}>
-                      <EmptyTableState message="No customers found." />
+                      <EmptyTableState message={t('customers.no_customers_found')} />
                     </td>
                   </tr>
                 )}

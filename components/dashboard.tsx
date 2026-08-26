@@ -24,6 +24,8 @@ import {
 } from './ui';
 import { AppAreaChart, AppBarChart, AppPieChart } from './charts';
 
+import { useTranslation } from '../provider';
+
 interface AnalyticsData {
   kpis: {
     totalProducts: number;
@@ -72,6 +74,7 @@ interface AnalyticsData {
 }
 
 export function DashboardView() {
+  const { t } = useTranslation();
   const [salesPeriod, setSalesPeriod] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('weekly');
   const [purchasesPeriod, setPurchasesPeriod] = useState<'daily' | 'monthly' | 'yearly'>('monthly');
   const [productTab, setProductTab] = useState<'topSelling' | 'mostProfitable' | 'slowMoving'>('topSelling');
@@ -82,7 +85,7 @@ export function DashboardView() {
   });
 
   if (isLoading) {
-    return <LoadingSpinner label="Preparing your live business intelligence dashboard…" />;
+    return <LoadingSpinner label={t('dashboard.live_intel_loading')} />;
   }
 
   if (error) {
@@ -124,30 +127,30 @@ export function DashboardView() {
       {/* 1. Top KPI Stat Grid */}
       <StatCardGrid columns={4}>
         <StatCard
-          label="Total Stock Value"
+          label={t('dashboard.total_stock_value')}
           value={money(d.kpis?.stockValue || 0)}
-          detail={`${d.kpis?.totalProducts || 0} total catalog products`}
+          detail={`${d.kpis?.totalProducts || 0} ${t('dashboard.total_catalog_products')}`}
           icon={<WalletCards color="#5068e6" size={20} />}
           kind="blue"
         />
         <StatCard
-          label="Today's Sales"
+          label={t('dashboard.today_sales')}
           value={money(d.kpis?.todaySales || 0)}
-          detail={`Gross profit: ${money(d.kpis?.todayGrossProfit || 0)}`}
+          detail={`${t('dashboard.gross_profit')}: ${money(d.kpis?.todayGrossProfit || 0)}`}
           icon={<ShoppingBag color="#28a476" size={20} />}
           kind="green"
         />
         <StatCard
-          label="Today's Purchases"
+          label={t('dashboard.today_purchases')}
           value={money(d.kpis?.todayPurchases || 0)}
-          detail="Supplier procurement orders"
+          detail={t('dashboard.supplier_procurement')}
           icon={<Package color="#d28d2b" size={20} />}
           kind="amber"
         />
         <StatCard
-          label="Receivable Due"
+          label={t('dashboard.receivable_due')}
           value={money(d.kpis?.receivable || 0)}
-          detail={`Payables to suppliers: ${money(d.kpis?.payable || 0)}`}
+          detail={`${t('dashboard.payables_to_suppliers')}: ${money(d.kpis?.payable || 0)}`}
           icon={<TrendingUp color="#d96a77" size={20} />}
           kind="rose"
         />
@@ -156,8 +159,8 @@ export function DashboardView() {
       {/* 2. Sales Overview (with Range Switcher) & Profit Snapshot */}
       <div className="grid-2">
         <ChartCard
-          title="Sales Overview"
-          subtitle={`Revenue performance (${salesPeriod} view)`}
+          title={t('dashboard.sales_overview')}
+          subtitle={`${t('dashboard.revenue_performance')} (${salesPeriod})`}
           action={
             <div style={{ display: 'flex', gap: 4, background: '#f0f2f8', padding: 3, borderRadius: 8 }}>
               {(['daily', 'weekly', 'monthly', 'yearly'] as const).map((p) => (
@@ -191,19 +194,19 @@ export function DashboardView() {
         <section className="card profit">
           <div className="card-head">
             <div>
-              <h3>Profit Snapshot</h3>
-              <p>Confirmed ledger breakdown</p>
+              <h3>{t('dashboard.profit_snapshot')}</h3>
+              <p>{t('dashboard.confirmed_ledger_breakdown')}</p>
             </div>
             <span className={`pill ${(d.profit?.netProfit || 0) >= 0 ? 'success' : 'status unpaid'}`}>
-              {(d.profit?.netProfit || 0) >= 0 ? 'Profitable' : 'Net Loss'}
+              {(d.profit?.netProfit || 0) >= 0 ? t('dashboard.profitable') : t('dashboard.net_loss')}
             </span>
           </div>
           {[
-            ['Total Revenue', d.profit?.revenue || 0, false],
-            ['Cost of Goods Sold (COGS)', d.profit?.cogs || 0, false],
-            ['Gross Profit', d.profit?.grossProfit || 0, true],
-            ['Operating Expenses', d.profit?.expenses || 0, false],
-            ['Net Profit', d.profit?.netProfit || 0, true],
+            [t('dashboard.total_revenue'), d.profit?.revenue || 0, false],
+            [t('dashboard.cost_of_goods_sold'), d.profit?.cogs || 0, false],
+            [t('dashboard.gross_profit'), d.profit?.grossProfit || 0, true],
+            [t('dashboard.operating_expenses'), d.profit?.expenses || 0, false],
+            [t('dashboard.net_profit'), d.profit?.netProfit || 0, true],
           ].map(([k, v, isEmphasis], i) => (
             <div className={isEmphasis ? 'emphasis row' : 'row'} key={k as string}>
               <span>{k as string}</span>
@@ -216,8 +219,8 @@ export function DashboardView() {
       {/* 3. Purchase Overview & Category Performance */}
       <div className="grid-2">
         <ChartCard
-          title="Purchase Overview"
-          subtitle={`Supplier procurement (${purchasesPeriod} view)`}
+          title={t('dashboard.purchase_overview')}
+          subtitle={`${t('dashboard.supplier_procurement')} (${purchasesPeriod})`}
           action={
             <div style={{ display: 'flex', gap: 4, background: '#f0f2f8', padding: 3, borderRadius: 8 }}>
               {(['daily', 'monthly', 'yearly'] as const).map((p) => (
@@ -248,12 +251,12 @@ export function DashboardView() {
         </ChartCard>
 
         {/* Category Performance Breakdown */}
-        <ChartCard title="Category Performance" subtitle="Sales & Profit by Category">
+        <ChartCard title={t('dashboard.category_performance')} subtitle={t('dashboard.sales_and_profit_by_category')}>
           <AppBarChart
             data={d.categoryPerformance || []}
             dataKeys={[
-              { key: 'sales', color: '#5068e6', label: 'Sales' },
-              { key: 'profit', color: '#28a476', label: 'Profit' },
+              { key: 'sales', color: '#5068e6', label: t('dashboard.revenue') },
+              { key: 'profit', color: '#28a476', label: t('dashboard.profit') },
             ]}
             xAxisKey="name"
           />
@@ -265,29 +268,29 @@ export function DashboardView() {
         <section className="card">
           <div className="card-head">
             <div>
-              <h3>Inventory Health</h3>
-              <p>Real-time stock status across catalog</p>
+              <h3>{t('dashboard.inventory_health')}</h3>
+              <p>{t('dashboard.realtime_stock_status')}</p>
             </div>
             <a href="/dashboard/inventory" style={{ fontSize: 12, color: '#5068e6', fontWeight: 600 }}>
-              Inventory overview →
+              {t('dashboard.inventory_overview')} →
             </a>
           </div>
           <div className="inventory" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
             <div>
               <strong>{d.kpis?.totalStock || 0}</strong>
-              <span>Units in stock</span>
+              <span>{t('dashboard.units_in_stock')}</span>
             </div>
             <div>
               <strong style={{ color: (d.kpis?.lowStock || 0) > 0 ? '#d28d2b' : 'inherit' }}>{d.kpis?.lowStock || 0}</strong>
-              <span>Low stock</span>
+              <span>{t('dashboard.low_stock')}</span>
             </div>
             <div>
               <strong style={{ color: (d.kpis?.outOfStock || 0) > 0 ? '#ef4444' : 'inherit' }}>{d.kpis?.outOfStock || 0}</strong>
-              <span>Out of stock</span>
+              <span>{t('dashboard.out_of_stock')}</span>
             </div>
             <div>
               <strong>{d.kpis?.overstocked || 0}</strong>
-              <span>Overstocked</span>
+              <span>{t('dashboard.overstocked')}</span>
             </div>
           </div>
         </section>
@@ -296,14 +299,14 @@ export function DashboardView() {
         <section className="card">
           <div className="card-head">
             <div>
-              <h3>Product Performance</h3>
-              <p>Actionable item insights</p>
+              <h3>{t('dashboard.product_performance')}</h3>
+              <p>{t('dashboard.actionable_item_insights')}</p>
             </div>
             <div style={{ display: 'flex', gap: 4, background: '#f0f2f8', padding: 3, borderRadius: 8 }}>
               {[
-                { id: 'topSelling', label: 'Top Selling' },
-                { id: 'mostProfitable', label: 'Most Profitable' },
-                { id: 'slowMoving', label: 'Slow-Moving' },
+                { id: 'topSelling', label: t('dashboard.top_selling') },
+                { id: 'mostProfitable', label: t('dashboard.most_profitable') },
+                { id: 'slowMoving', label: t('dashboard.slow_moving') },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -334,19 +337,19 @@ export function DashboardView() {
                   <div>
                     <strong>{p.name}</strong>
                     <small>
-                      {p.sku} · {p.unitsSold} units sold
+                      {p.sku} · {p.unitsSold} {t('dashboard.units_sold')}
                     </small>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <b>{productTab === 'mostProfitable' ? money(p.profit) : money(p.revenue)}</b>
                     <small style={{ display: 'block', fontSize: 10, color: '#8890a5' }}>
-                      {productTab === 'mostProfitable' ? 'Profit' : 'Revenue'}
+                      {productTab === 'mostProfitable' ? t('dashboard.profit') : t('dashboard.revenue')}
                     </small>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="empty">No products recorded for this category yet.</div>
+              <div className="empty">{t('dashboard.no_products_category')}</div>
             )}
           </div>
         </section>

@@ -10,15 +10,16 @@ import {
   CurrencyDisplay,
   DataTable,
   DataTablePagination,
-  DataTableToolbar,
   DateDisplay,
   EmptyTableState,
   LoadingSpinner,
   PageContainer,
   PageHeader,
 } from '../../../../components/ui';
+import { useTranslation } from '../../../../provider';
 
 export default function PurchaseReturnsPage() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
 
@@ -32,35 +33,35 @@ export default function PurchaseReturnsPage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title="Purchase Returns"
-            description="Manage goods returned to suppliers, deducting stock counts and reducing accounts payable."
+            title={t('purchases.returns_title')}
+            description={t('purchases.returns_desc')}
             breadcrumbs={[
-              { label: 'Dashboard', href: '/dashboard' },
-              { label: 'Purchases', href: '/dashboard/purchases' },
-              { label: 'Returns' },
+              { label: t('common.dashboard'), href: '/dashboard' },
+              { label: t('purchases.title'), href: '/dashboard/purchases' },
+              { label: t('purchases.returns_title') },
             ]}
             action={
               <Link className="primary-button" href="/dashboard/purchases/returns/create">
-                + New Purchase Return
+                + {t('purchases.record_return')}
               </Link>
             }
           />
 
           {returnsQuery.isLoading ? (
-            <LoadingSpinner label="Loading purchase returns records…" />
+            <LoadingSpinner label={t('common.loading')} />
           ) : returnsQuery.error ? (
             <div className="error">{returnsQuery.error.message}</div>
           ) : (
             <>
               <DataTable
                 columns={[
-                  'Return Date',
-                  'Purchase #',
-                  'Supplier',
-                  'Return Amount',
-                  'Reason',
-                  'Items Returned',
-                  'Actions',
+                  t('common.date'),
+                  t('purchases.purchase_number'),
+                  t('purchases.supplier'),
+                  t('common.total'),
+                  t('inventory.reason'),
+                  t('products.units'),
+                  t('common.actions'),
                 ]}
               >
                 {returnsQuery.data?.data.length ? (
@@ -79,16 +80,16 @@ export default function PurchaseReturnsPage() {
                         </strong>
                       </td>
                       <td>{r.reason}</td>
-                      <td>{r.items?.length || 0} line items</td>
+                      <td>{r.items?.length || 0}</td>
                       <td>
-                        <Link href={`/dashboard/purchases/returns/${r.id}`}>View Receipt</Link>
+                        <Link href={`/dashboard/purchases/returns/${r.id}`}>{t('common.view')}</Link>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
                     <td colSpan={7}>
-                      <EmptyTableState message="No purchase returns recorded." />
+                      <EmptyTableState message={t('purchases.no_purchases_found')} />
                     </td>
                   </tr>
                 )}

@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../../components/auth-guard';
 import { Shell } from '../../../../components/shell';
 import { api } from '../../../../lib/api';
+import { useTranslation } from '../../../../provider';
 import {
   CurrencyDisplay,
   LoadingSpinner,
@@ -16,6 +17,7 @@ import {
 } from '../../../../components/ui';
 
 export default function ProfitReportPage() {
+  const { t } = useTranslation();
   const [from, setFrom] = useState(
     new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10)
   );
@@ -31,12 +33,12 @@ export default function ProfitReportPage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title="Profit & Loss Statement (P&L)"
-            description="Clear separation of Gross Revenue, Inventory COGS, Operating Expenses and Net Profit."
+            title={t('reports.profit_title')}
+            description={t('reports.profit_desc')}
             breadcrumbs={[
-              { label: 'Dashboard', href: '/dashboard' },
-              { label: 'Reports', href: '/dashboard/reports' },
-              { label: 'Profit' },
+              { label: t('common.dashboard'), href: '/dashboard' },
+              { label: t('reports.title'), href: '/dashboard/reports' },
+              { label: t('reports.profit_title') },
             ]}
             action={
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -46,7 +48,7 @@ export default function ProfitReportPage() {
                   onChange={(e) => setFrom(e.target.value)}
                   style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}
                 />
-                <span style={{ color: '#94a3b8' }}>to</span>
+                <span style={{ color: '#94a3b8' }}>{t('reports.to_date')}</span>
                 <input
                   type="date"
                   value={to}
@@ -58,34 +60,34 @@ export default function ProfitReportPage() {
           />
 
           {profitQuery.isLoading ? (
-            <LoadingSpinner label="Compiling Profit & Loss statement…" />
+            <LoadingSpinner label={t('common.loading')} />
           ) : profitQuery.error ? (
             <ErrorState message={profitQuery.error.message} onRetry={() => profitQuery.refetch()} />
           ) : (
             <>
               <StatCardGrid columns={4}>
                 <StatCard
-                  label="Gross Sales Revenue"
+                  label={t('reports.sales_revenue')}
                   value={<CurrencyDisplay value={profitQuery.data.sales.revenue} />}
-                  detail={`${profitQuery.data.sales.orders} confirmed orders`}
+                  detail={`${profitQuery.data.sales.orders} ${t('sales.orders')}`}
                   kind="blue"
                 />
                 <StatCard
-                  label="Cost of Goods Sold (COGS)"
+                  label={t('reports.cogs')}
                   value={<CurrencyDisplay value={profitQuery.data.sales.cogs} />}
-                  detail="Weighted Average Costing"
+                  detail={t('reports.cogs_detail')}
                   kind="amber"
                 />
                 <StatCard
-                  label="Gross Operating Margin"
+                  label={t('reports.gross_profit')}
                   value={<CurrencyDisplay value={profitQuery.data.profit.grossProfit} />}
-                  detail="Revenue minus COGS"
+                  detail={t('reports.gross_profit_detail')}
                   kind="green"
                 />
                 <StatCard
-                  label="Net Operating Profit"
+                  label={t('reports.net_profit')}
                   value={<CurrencyDisplay value={profitQuery.data.profit.netProfit} />}
-                  detail="Gross margin minus expenses"
+                  detail={t('reports.net_profit_detail')}
                   kind={Number(profitQuery.data.profit.netProfit) >= 0 ? 'green' : 'rose'}
                 />
               </StatCardGrid>
@@ -93,37 +95,37 @@ export default function ProfitReportPage() {
               <section className="card" style={{ marginTop: 16 }}>
                 <div className="card-head">
                   <div>
-                    <h3>Financial Income Statement Breakdown</h3>
+                    <h3>{t('reports.financial_income_statement')}</h3>
                     <p>
-                      Reporting Period: <strong>{from}</strong> to <strong>{to}</strong>
+                      {t('reports.reporting_period')}: <strong>{from}</strong> {t('reports.to_date')} <strong>{to}</strong>
                     </p>
                   </div>
                 </div>
 
                 <div style={{ display: 'grid', gap: 0 }}>
                   <div className="row" style={{ fontSize: 15, padding: '12px 14px' }}>
-                    <span>Gross Sales Revenue (Confirmed Orders)</span>
+                    <span>{t('reports.gross_sales_revenue')}</span>
                     <strong style={{ color: '#5068e6' }}>
                       <CurrencyDisplay value={profitQuery.data.sales.revenue} />
                     </strong>
                   </div>
 
                   <div className="row" style={{ fontSize: 15, padding: '12px 14px' }}>
-                    <span>Less: Cost of Goods Sold (COGS based on WAC)</span>
+                    <span>{t('reports.less_cogs')}</span>
                     <strong style={{ color: '#ef4444' }}>
                       - <CurrencyDisplay value={profitQuery.data.sales.cogs} />
                     </strong>
                   </div>
 
                   <div className="row emphasis" style={{ fontSize: 16, padding: '14px', background: '#f8fafc' }}>
-                    <strong>Gross Operating Profit</strong>
+                    <strong>{t('reports.gross_profit')}</strong>
                     <strong style={{ color: '#188b64' }}>
                       <CurrencyDisplay value={profitQuery.data.profit.grossProfit} />
                     </strong>
                   </div>
 
                   <div className="row" style={{ fontSize: 15, padding: '12px 14px' }}>
-                    <span>Less: Operating Expenses ({profitQuery.data.expenses.count} expense records)</span>
+                    <span>{t('reports.less_expenses')} ({profitQuery.data.expenses.count})</span>
                     <strong style={{ color: '#ef4444' }}>
                       - <CurrencyDisplay value={profitQuery.data.expenses.total} />
                     </strong>
@@ -138,7 +140,7 @@ export default function ProfitReportPage() {
                     }}
                   >
                     <strong style={{ color: Number(profitQuery.data.profit.netProfit) >= 0 ? '#188b64' : '#ef4444' }}>
-                      Net Operating Profit (Bottom Line)
+                      {t('reports.net_profit')}
                     </strong>
                     <strong style={{ color: Number(profitQuery.data.profit.netProfit) >= 0 ? '#188b64' : '#ef4444' }}>
                       <CurrencyDisplay value={profitQuery.data.profit.netProfit} />

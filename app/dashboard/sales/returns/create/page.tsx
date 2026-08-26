@@ -14,8 +14,10 @@ import {
   PageContainer,
   PageHeader,
 } from '../../../../../components/ui';
+import { useTranslation } from '../../../../../provider';
 
 export default function CreateSalesReturnPage() {
+  const { t } = useTranslation();
   const router = useRouter();
 
   const [saleId, setSaleId] = useState('');
@@ -59,13 +61,13 @@ export default function CreateSalesReturnPage() {
   async function submit(e: FormEvent) {
     e.preventDefault();
     if (!saleId) {
-      setError('Please select an original sale invoice.');
+      setError(t('documents.invoice_reference'));
       return;
     }
 
     const validItems = returnItems.filter((i) => Number(i.quantity) > 0);
     if (!validItems.length) {
-      setError('Please specify a return quantity of at least one item.');
+      setError(t('documents.select_product'));
       return;
     }
 
@@ -100,38 +102,38 @@ export default function CreateSalesReturnPage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title="Record Sales Return"
-            description="Restock returned inventory, reduce sales revenue and credit customer balances."
+            title={t('sales.record_return')}
+            description={t('sales.returns_desc')}
             breadcrumbs={[
-              { label: 'Dashboard', href: '/dashboard' },
-              { label: 'Sales', href: '/dashboard/sales' },
-              { label: 'Returns', href: '/dashboard/sales/returns' },
-              { label: 'Create' },
+              { label: t('common.dashboard'), href: '/dashboard' },
+              { label: t('sales.title'), href: '/dashboard/sales' },
+              { label: t('sales.returns_title'), href: '/dashboard/sales/returns' },
+              { label: t('common.create') },
             ]}
           />
 
           {salesQuery.isLoading ? (
-            <LoadingSpinner label="Loading sales orders…" />
+            <LoadingSpinner label={t('common.loading')} />
           ) : (
             <form className="record-form" onSubmit={submit}>
-              <FormSection title="Return Metadata">
+              <FormSection title={t('sales.returns_title')}>
                 <div className="form-grid">
-                  <FormField label="Select Confirmed Sales Invoice" required>
+                  <FormField label={t('sales.invoice_number')} required>
                     <select
                       required
                       value={saleId}
                       onChange={(e) => handleSaleChange(e.target.value)}
                     >
-                      <option value="">Choose sales invoice</option>
+                      <option value="">{t('documents.invoice_reference')}</option>
                       {extractItems<any>(salesQuery.data).map((s) => (
                         <option key={s.id} value={s.id}>
-                          {s.invoiceNumber} — {s.customer ? s.customer.name : 'Walk-in'} (Total: {money(s.grandTotal)})
+                          {s.invoiceNumber} — {s.customer ? s.customer.name : t('common.walk_in_customer')} ({t('common.total')}: {money(s.grandTotal)})
                         </option>
                       ))}
                     </select>
                   </FormField>
 
-                  <FormField label="Return Reason" required>
+                  <FormField label={t('inventory.reason')} required>
                     <select value={reason} onChange={(e) => setReason(e.target.value)}>
                       <option value="Customer Return">Customer Return</option>
                       <option value="Defective / Damaged">Defective / Damaged</option>
@@ -141,7 +143,7 @@ export default function CreateSalesReturnPage() {
                     </select>
                   </FormField>
 
-                  <FormField label="Return Date & Time" required>
+                  <FormField label={t('common.date')} required>
                     <input
                       required
                       type="datetime-local"
@@ -153,7 +155,7 @@ export default function CreateSalesReturnPage() {
               </FormSection>
 
               {selectedSale && (
-                <FormSection title="Select Quantities to Return">
+                <FormSection title={t('documents.line_items')}>
                   <div style={{ display: 'grid', gap: 12 }}>
                     {selectedSale.items.map((item: any) => {
                       const itemState = returnItems.find((r) => r.saleItemId === item.id);
@@ -175,12 +177,12 @@ export default function CreateSalesReturnPage() {
                           <div>
                             <strong>{item.product?.name}</strong> (SKU: {item.product?.sku})
                             <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
-                              Sold Quantity: <strong>{item.quantity} {item.product?.unit || 'pcs'}</strong> · Unit Price: <strong>{money(item.unitPrice)}</strong>
+                              {t('documents.qty')}: <strong>{item.quantity} {item.product?.unit || 'pcs'}</strong> · {t('documents.unit_price')}: <strong>{money(item.unitPrice)}</strong>
                             </div>
                           </div>
 
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <label style={{ fontSize: 12, color: '#475569' }}>Return Qty:</label>
+                            <label style={{ fontSize: 12, color: '#475569' }}>{t('documents.qty')}:</label>
                             <input
                               type="number"
                               min="0"
@@ -199,12 +201,12 @@ export default function CreateSalesReturnPage() {
                 </FormSection>
               )}
 
-              <FormSection title="Internal Notes">
-                <FormField label="Notes">
+              <FormSection title={t('documents.internal_notes')}>
+                <FormField label={t('documents.internal_notes')}>
                   <textarea
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    placeholder="Inspection remarks, restocking condition…"
+                    placeholder={t('documents.internal_notes')}
                   />
                 </FormField>
               </FormSection>
@@ -213,10 +215,10 @@ export default function CreateSalesReturnPage() {
 
               <FormActions>
                 <button type="button" onClick={() => router.back()}>
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button className="primary-button" disabled={saving || !saleId}>
-                  {saving ? 'Processing…' : 'Confirm Sales Return'}
+                  {saving ? t('common.processing') : t('sales.record_return')}
                 </button>
               </FormActions>
             </form>

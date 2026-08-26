@@ -195,7 +195,7 @@ export function ProductForm({ product }: ProductFormProps) {
 
       <FormSection title={t('products.pricing_stock_policy')}>
         <div className="form-grid">
-          <FormField label={`${t('products.purchase_price')} (BDT)`} required>
+          <FormField label={`${t('products.purchase_price')} (${t('common.bdt')})`} required>
             <input
               required
               min="0"
@@ -206,7 +206,7 @@ export function ProductForm({ product }: ProductFormProps) {
               placeholder="0.00"
             />
           </FormField>
-          <FormField label={`${t('products.selling_price')} (BDT)`} required>
+          <FormField label={`${t('products.selling_price')} (${t('common.bdt')})`} required>
             <input
               required
               min="0"
@@ -217,7 +217,7 @@ export function ProductForm({ product }: ProductFormProps) {
               placeholder="0.00"
             />
           </FormField>
-          <FormField label={`${t('products.wholesale_price')} (BDT)`}>
+          <FormField label={`${t('products.wholesale_price')} (${t('common.bdt')})`}>
             <input
               min="0"
               type="number"

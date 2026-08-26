@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../components/auth-guard';
 import { Shell } from '../../../components/shell';
 import { api } from '../../../lib/api';
+import { useTranslation } from '../../../provider';
 import {
   CurrencyDisplay,
   LoadingSpinner,
@@ -18,6 +19,7 @@ import {
 import { Package, Coins, AlertTriangle, XCircle, TrendingUp, ArrowRight } from 'lucide-react';
 
 export default function InventoryOverviewPage() {
+  const { t } = useTranslation();
   const overviewQuery = useQuery({
     queryKey: ['inventory-overview'],
     queryFn: () => api<any>('/inventory/overview'),
@@ -27,7 +29,7 @@ export default function InventoryOverviewPage() {
     return (
       <AuthGuard>
         <Shell>
-          <LoadingSpinner label="Auditing inventory metrics and valuations…" />
+          <LoadingSpinner label={t('common.loading')} />
         </Shell>
       </AuthGuard>
     );
@@ -43,23 +45,29 @@ export default function InventoryOverviewPage() {
     );
   }
 
-  const d = overviewQuery.data;
+  const d = overviewQuery.data || {
+    totalStock: 0,
+    stockValue: 0,
+    lowStock: 0,
+    outOfStock: 0,
+    overstocked: 0,
+  };
 
   return (
     <AuthGuard>
       <Shell>
         <PageContainer>
           <PageHeader
-            title="Inventory Overview"
-            description="Live visibility of catalog stock positions, inventory valuation and health thresholds."
-            breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Inventory' }]}
+            title={t('inventory.stock_position')}
+            description={t('inventory.stock_position_desc')}
+            breadcrumbs={[{ label: t('common.dashboard'), href: '/dashboard' }, { label: t('inventory.stock_position') }]}
             action={
               <div style={{ display: 'flex', gap: 10 }}>
                 <Link className="ghost" href="/dashboard/inventory/movements">
-                  Movements Audit
+                  {t('inventory.stock_movements')}
                 </Link>
                 <Link className="primary-button" href="/dashboard/inventory/adjustments">
-                  + Adjust Stock
+                  {t('inventory.adjust_stock_btn')}
                 </Link>
               </div>
             }
@@ -68,37 +76,37 @@ export default function InventoryOverviewPage() {
           {/* 5 Core Health Metric Cards */}
           <StatCardGrid columns={5}>
             <StatCard
-              label="Total Stock Quantity"
-              value={`${d.totalStock} units`}
-              detail="Aggregate inventory count"
+              label={t('products.stock_units')}
+              value={`${d.totalStock} ${t('products.units')}`}
+              detail={t('dashboard.units_in_stock')}
               icon={<Package color="#5068e6" size={20} />}
               kind="blue"
             />
             <StatCard
-              label="Total Stock Value"
+              label={t('products.stock_value')}
               value={<CurrencyDisplay value={d.stockValue} />}
-              detail="Based on Weighted Avg Cost"
+              detail={t('reports.inventory_title')}
               icon={<Coins color="#28a476" size={20} />}
               kind="green"
             />
             <StatCard
-              label="Low Stock Products"
+              label={t('dashboard.low_stock')}
               value={d.lowStock}
-              detail="Below minimum threshold"
+              detail={t('products.low_stock_filter')}
               icon={<AlertTriangle color="#d28d2b" size={20} />}
               kind="amber"
             />
             <StatCard
-              label="Out of Stock"
+              label={t('dashboard.out_of_stock')}
               value={d.outOfStock}
-              detail="Zero or negative stock"
+              detail={t('products.out_of_stock_filter')}
               icon={<XCircle color="#ef4444" size={20} />}
               kind="rose"
             />
             <StatCard
-              label="Overstocked Items"
+              label={t('dashboard.overstocked')}
               value={d.overstocked}
-              detail="Above maximum capacity"
+              detail={t('products.overstocked_filter')}
               icon={<TrendingUp color="#5068e6" size={20} />}
               kind="blue"
             />
@@ -109,8 +117,8 @@ export default function InventoryOverviewPage() {
             <section className="card">
               <div className="card-head">
                 <div>
-                  <h3>Stock Levels & Catalog Status</h3>
-                  <p>Filter products by low stock, out of stock, or overstocked items</p>
+                  <h3>{t('dashboard.inventory_health')}</h3>
+                  <p>{t('dashboard.realtime_stock_status')}</p>
                 </div>
               </div>
               <div style={{ display: 'grid', gap: 12 }}>
@@ -119,7 +127,7 @@ export default function InventoryOverviewPage() {
                   className="ghost"
                   style={{ justifyContent: 'space-between', padding: 14 }}
                 >
-                  <span>⚠️ Review Low Stock Items ({d.lowStock})</span>
+                  <span>⚠️ {t('dashboard.low_stock')} ({d.lowStock})</span>
                   <ArrowRight size={16} />
                 </Link>
                 <Link
@@ -127,7 +135,7 @@ export default function InventoryOverviewPage() {
                   className="ghost"
                   style={{ justifyContent: 'space-between', padding: 14 }}
                 >
-                  <span>🚨 Review Out of Stock Items ({d.outOfStock})</span>
+                  <span>🚨 {t('dashboard.out_of_stock')} ({d.outOfStock})</span>
                   <ArrowRight size={16} />
                 </Link>
                 <Link
@@ -135,7 +143,7 @@ export default function InventoryOverviewPage() {
                   className="ghost"
                   style={{ justifyContent: 'space-between', padding: 14 }}
                 >
-                  <span>📦 Full Product Catalog</span>
+                  <span>📦 {t('products.title')}</span>
                   <ArrowRight size={16} />
                 </Link>
               </div>
@@ -144,8 +152,8 @@ export default function InventoryOverviewPage() {
             <section className="card">
               <div className="card-head">
                 <div>
-                  <h3>Stock Movement & Audit Trail</h3>
-                  <p>Every purchase, sale, return and adjustment creates an immutable log</p>
+                  <h3>{t('inventory.stock_movements')}</h3>
+                  <p>{t('inventory.stock_movements_desc')}</p>
                 </div>
               </div>
               <div style={{ display: 'grid', gap: 12 }}>
@@ -154,15 +162,23 @@ export default function InventoryOverviewPage() {
                   className="ghost"
                   style={{ justifyContent: 'space-between', padding: 14 }}
                 >
-                  <span>📋 View All Stock Movements</span>
+                  <span>📋 {t('inventory.stock_movements')}</span>
                   <ArrowRight size={16} />
                 </Link>
                 <Link
                   href="/dashboard/inventory/adjustments"
-                  className="primary-button"
+                  className="ghost"
                   style={{ justifyContent: 'space-between', padding: 14 }}
                 >
-                  <span>⚡ Create Manual Stock Adjustment</span>
+                  <span>⚖️ {t('inventory.stock_adjustment')}</span>
+                  <ArrowRight size={16} />
+                </Link>
+                <Link
+                  href="/dashboard/reports/inventory"
+                  className="ghost"
+                  style={{ justifyContent: 'space-between', padding: 14 }}
+                >
+                  <span>📊 {t('reports.inventory_title')}</span>
                   <ArrowRight size={16} />
                 </Link>
               </div>

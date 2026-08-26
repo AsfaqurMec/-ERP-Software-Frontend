@@ -14,8 +14,10 @@ import {
   PageContainer,
   PageHeader,
 } from '../../../../../components/ui';
+import { useTranslation } from '../../../../../provider';
 
 export default function CreatePurchaseReturnPage() {
+  const { t } = useTranslation();
   const router = useRouter();
 
   const [purchaseId, setPurchaseId] = useState('');
@@ -59,13 +61,13 @@ export default function CreatePurchaseReturnPage() {
   async function submit(e: FormEvent) {
     e.preventDefault();
     if (!purchaseId) {
-      setError('Please select an original purchase order.');
+      setError(t('documents.supplier_invoice_ref'));
       return;
     }
 
     const validItems = returnItems.filter((i) => Number(i.quantity) > 0);
     if (!validItems.length) {
-      setError('Please specify a return quantity of at least one item.');
+      setError(t('documents.select_product'));
       return;
     }
 
@@ -100,38 +102,38 @@ export default function CreatePurchaseReturnPage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title="Record Purchase Return"
-            description="Return inventory to supplier, reduce stock levels and adjust supplier account balance."
+            title={t('purchases.record_return')}
+            description={t('purchases.returns_desc')}
             breadcrumbs={[
-              { label: 'Dashboard', href: '/dashboard' },
-              { label: 'Purchases', href: '/dashboard/purchases' },
-              { label: 'Returns', href: '/dashboard/purchases/returns' },
-              { label: 'Create' },
+              { label: t('common.dashboard'), href: '/dashboard' },
+              { label: t('purchases.title'), href: '/dashboard/purchases' },
+              { label: t('purchases.returns_title'), href: '/dashboard/purchases/returns' },
+              { label: t('common.create') },
             ]}
           />
 
           {purchasesQuery.isLoading ? (
-            <LoadingSpinner label="Loading purchase orders…" />
+            <LoadingSpinner label={t('common.loading')} />
           ) : (
             <form className="record-form" onSubmit={submit}>
-              <FormSection title="Return Metadata">
+              <FormSection title={t('purchases.returns_title')}>
                 <div className="form-grid">
-                  <FormField label="Select Confirmed Purchase Order" required>
+                  <FormField label={t('purchases.purchase_number')} required>
                     <select
                       required
                       value={purchaseId}
                       onChange={(e) => handlePurchaseChange(e.target.value)}
                     >
-                      <option value="">Choose purchase order</option>
+                      <option value="">{t('purchases.purchase_number')}</option>
                       {extractItems<any>(purchasesQuery.data).map((p) => (
                         <option key={p.id} value={p.id}>
-                          {p.purchaseNumber} — {p.supplier?.name} (Total: {money(p.grandTotal)})
+                          {p.purchaseNumber} — {p.supplier?.name} ({t('common.total')}: {money(p.grandTotal)})
                         </option>
                       ))}
                     </select>
                   </FormField>
 
-                  <FormField label="Return Reason" required>
+                  <FormField label={t('inventory.reason')} required>
                     <select value={reason} onChange={(e) => setReason(e.target.value)}>
                       <option value="Damaged / Defective">Damaged / Defective</option>
                       <option value="Quality Discrepancy">Quality Discrepancy</option>
@@ -141,7 +143,7 @@ export default function CreatePurchaseReturnPage() {
                     </select>
                   </FormField>
 
-                  <FormField label="Return Date & Time" required>
+                  <FormField label={t('common.date')} required>
                     <input
                       required
                       type="datetime-local"
@@ -153,7 +155,7 @@ export default function CreatePurchaseReturnPage() {
               </FormSection>
 
               {selectedPurchase && (
-                <FormSection title="Select Quantities to Return">
+                <FormSection title={t('documents.line_items')}>
                   <div style={{ display: 'grid', gap: 12 }}>
                     {selectedPurchase.items.map((item: any) => {
                       const itemState = returnItems.find((r) => r.purchaseItemId === item.id);
@@ -175,12 +177,12 @@ export default function CreatePurchaseReturnPage() {
                           <div>
                             <strong>{item.product?.name}</strong> (SKU: {item.product?.sku})
                             <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
-                              Purchased Quantity: <strong>{item.quantity} {item.product?.unit || 'pcs'}</strong> · Unit Cost: <strong>{money(item.unitCost)}</strong>
+                              {t('documents.qty')}: <strong>{item.quantity} {item.product?.unit || 'pcs'}</strong> · {t('documents.unit_cost')}: <strong>{money(item.unitCost)}</strong>
                             </div>
                           </div>
 
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <label style={{ fontSize: 12, color: '#475569' }}>Return Qty:</label>
+                            <label style={{ fontSize: 12, color: '#475569' }}>{t('documents.qty')}:</label>
                             <input
                               type="number"
                               min="0"
@@ -199,12 +201,12 @@ export default function CreatePurchaseReturnPage() {
                 </FormSection>
               )}
 
-              <FormSection title="Internal Notes">
-                <FormField label="Notes">
+              <FormSection title={t('documents.internal_notes')}>
+                <FormField label={t('documents.internal_notes')}>
                   <textarea
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    placeholder="Supplier communication, dispatch tracking…"
+                    placeholder={t('documents.internal_notes')}
                   />
                 </FormField>
               </FormSection>
@@ -213,10 +215,10 @@ export default function CreatePurchaseReturnPage() {
 
               <FormActions>
                 <button type="button" onClick={() => router.back()}>
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button className="primary-button" disabled={saving || !purchaseId}>
-                  {saving ? 'Processing…' : 'Confirm Purchase Return'}
+                  {saving ? t('common.processing') : t('purchases.record_return')}
                 </button>
               </FormActions>
             </form>

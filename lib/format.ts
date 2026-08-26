@@ -1,45 +1,88 @@
 /**
- * Centralized formatting utilities for currency (BDT / ৳), numbers, percentages,
+ * Centralized formatting utilities for currency (BDT / টাকা), numbers, percentages,
  * and dates configured for Bangladesh (Asia/Dhaka).
+ * Supports dynamic localization between English ('BDT value') and Bengali ('value টাকা').
  */
+
+import i18n from '../provider/i18n';
 
 const DHAKA_TIMEZONE = 'Asia/Dhaka';
 
+export function getCurrentLanguage(): string {
+  if (i18n && i18n.language) {
+    return i18n.language;
+  }
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = localStorage.getItem('app_lang');
+      if (saved === 'bn' || saved === 'en') return saved;
+      if (document.documentElement.lang === 'bn' || document.documentElement.lang === 'en') {
+        return document.documentElement.lang;
+      }
+    } catch {}
+  }
+  return 'en';
+}
+
 export function formatCurrency(
   value: number | string | null | undefined,
-  currency = 'BDT'
+  currency = 'BDT',
+  lang?: string
 ): string {
+  const currentLang = lang || getCurrentLanguage();
+
   if (value === null || value === undefined || isNaN(Number(value))) {
-    return '৳ 0';
+    return currentLang === 'bn' ? '০ টাকা' : 'BDT 0';
   }
 
-  return new Intl.NumberFormat('en-BD', {
-    style: 'currency',
-    currency,
+  const num = Number(value);
+
+  if (currentLang === 'bn') {
+    const formatted = new Intl.NumberFormat('bn-BD', {
+      maximumFractionDigits: 2,
+      minimumFractionDigits: 0,
+    }).format(Math.abs(num));
+
+    const sign = num < 0 ? '-' : '';
+    if (currency === 'BDT') {
+      return `${sign}${formatted} টাকা`;
+    }
+    return `${sign}${formatted} ${currency}`;
+  }
+
+  const formatted = new Intl.NumberFormat('en-BD', {
     maximumFractionDigits: 2,
     minimumFractionDigits: 0,
-  }).format(Number(value));
+  }).format(Math.abs(num));
+
+  const sign = num < 0 ? '-' : '';
+  return `${sign}${currency} ${formatted}`;
 }
 
 export function formatNumber(
   value: number | string | null | undefined,
-  maximumFractionDigits = 2
+  maximumFractionDigits = 2,
+  lang?: string
 ): string {
+  const currentLang = lang || getCurrentLanguage();
+
   if (value === null || value === undefined || isNaN(Number(value))) {
-    return '0';
+    return currentLang === 'bn' ? '০' : '0';
   }
 
-  return new Intl.NumberFormat('en-BD', {
+  return new Intl.NumberFormat(currentLang === 'bn' ? 'bn-BD' : 'en-BD', {
     maximumFractionDigits,
   }).format(Number(value));
 }
 
-export function formatDate(date: string | Date | null | undefined): string {
+export function formatDate(date: string | Date | null | undefined, lang?: string): string {
   if (!date) return '—';
   const d = typeof date === 'string' ? new Date(date) : date;
   if (isNaN(d.getTime())) return '—';
 
-  return new Intl.DateTimeFormat('en-BD', {
+  const currentLang = lang || getCurrentLanguage();
+
+  return new Intl.DateTimeFormat(currentLang === 'bn' ? 'bn-BD' : 'en-BD', {
     timeZone: DHAKA_TIMEZONE,
     year: 'numeric',
     month: 'short',
@@ -47,12 +90,14 @@ export function formatDate(date: string | Date | null | undefined): string {
   }).format(d);
 }
 
-export function formatDateTime(date: string | Date | null | undefined): string {
+export function formatDateTime(date: string | Date | null | undefined, lang?: string): string {
   if (!date) return '—';
   const d = typeof date === 'string' ? new Date(date) : date;
   if (isNaN(d.getTime())) return '—';
 
-  return new Intl.DateTimeFormat('en-BD', {
+  const currentLang = lang || getCurrentLanguage();
+
+  return new Intl.DateTimeFormat(currentLang === 'bn' ? 'bn-BD' : 'en-BD', {
     timeZone: DHAKA_TIMEZONE,
     year: 'numeric',
     month: 'short',
@@ -64,10 +109,16 @@ export function formatDateTime(date: string | Date | null | undefined): string {
 
 export function formatPercentage(
   value: number | string | null | undefined,
-  decimals = 1
+  decimals = 1,
+  lang?: string
 ): string {
+  const currentLang = lang || getCurrentLanguage();
   if (value === null || value === undefined || isNaN(Number(value))) {
-    return '0%';
+    return currentLang === 'bn' ? '০%' : '0%';
   }
-  return `${Number(value).toFixed(decimals)}%`;
+  const formatted = new Intl.NumberFormat(currentLang === 'bn' ? 'bn-BD' : 'en-BD', {
+    maximumFractionDigits: decimals,
+    minimumFractionDigits: 0,
+  }).format(Number(value));
+  return `${formatted}%`;
 }

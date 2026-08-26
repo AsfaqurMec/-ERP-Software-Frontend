@@ -8,8 +8,10 @@ import { Shell } from '../../../../../components/shell';
 import { CustomerForm } from '../../../../../components/customer-form';
 import { api } from '../../../../../lib/api';
 import { LoadingSpinner, PageContainer, PageHeader, ErrorState } from '../../../../../components/ui';
+import { useTranslation } from '../../../../../provider';
 
 export default function EditCustomerPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
 
   const customerQuery = useQuery({
@@ -22,16 +24,16 @@ export default function EditCustomerPage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title="Edit Customer"
-            description="Update customer contact information and status."
+            title={t('customers.edit_customer')}
+            description={t('customers.customer_info')}
             breadcrumbs={[
-              { label: 'Dashboard', href: '/dashboard' },
-              { label: 'Customers', href: '/dashboard/customers' },
-              { label: 'Edit' },
+              { label: t('common.dashboard'), href: '/dashboard' },
+              { label: t('customers.title'), href: '/dashboard/customers' },
+              { label: t('customers.edit_customer') },
             ]}
           />
           {customerQuery.isLoading ? (
-            <LoadingSpinner label="Loading customer details…" />
+            <LoadingSpinner label={t('common.loading')} />
           ) : customerQuery.error ? (
             <ErrorState message={customerQuery.error.message} onRetry={() => customerQuery.refetch()} />
           ) : (

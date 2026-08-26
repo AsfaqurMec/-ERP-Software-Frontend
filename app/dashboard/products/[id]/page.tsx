@@ -6,7 +6,7 @@ import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../../components/auth-guard';
 import { Shell } from '../../../../components/shell';
-import { api } from '../../../../lib/api';
+import { api, formatCurrency } from '../../../../lib/api';
 import {
   CurrencyDisplay,
   DateDisplay,
@@ -20,8 +20,10 @@ import {
   ErrorState,
 } from '../../../../components/ui';
 import { Package, ShoppingBag, Coins, TrendingUp } from 'lucide-react';
+import { useTranslation } from '../../../../provider';
 
 export default function ProductDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
 
   const productQuery = useQuery({
@@ -33,7 +35,7 @@ export default function ProductDetailPage() {
     return (
       <AuthGuard>
         <Shell>
-          <LoadingSpinner label="Loading product specifications and ledger…" />
+          <LoadingSpinner label={t('common.loading')} />
         </Shell>
       </AuthGuard>
     );
@@ -57,19 +59,19 @@ export default function ProductDetailPage() {
         <PageContainer>
           <PageHeader
             title={p.name}
-            description={`SKU: ${p.sku} · Category: ${p.category?.name || 'Uncategorized'}`}
+            description={`SKU: ${p.sku} · ${t('products.category')}: ${p.category?.name || '—'}`}
             breadcrumbs={[
-              { label: 'Dashboard', href: '/dashboard' },
-              { label: 'Products', href: '/dashboard/products' },
+              { label: t('common.dashboard'), href: '/dashboard' },
+              { label: t('products.title'), href: '/dashboard/products' },
               { label: p.name },
             ]}
             action={
               <div style={{ display: 'flex', gap: 10 }}>
                 <Link className="ghost" href={`/dashboard/inventory/adjustments`}>
-                  Adjust Stock
+                  {t('inventory.adjustments')}
                 </Link>
                 <Link className="primary-button" href={`/dashboard/products/${id}/edit`}>
-                  Edit Product
+                  {t('products.edit_product')}
                 </Link>
               </div>
             }
@@ -78,30 +80,30 @@ export default function ProductDetailPage() {
           {/* Key Metric Cards */}
           <StatCardGrid columns={4}>
             <StatCard
-              label="Current Stock"
+              label={t('inventory.current_stock')}
               value={`${p.stock} ${p.unit}`}
-              detail={`Threshold: ${p.minimumStock} min`}
+              detail={`${t('products.minimum_stock')}: ${p.minimumStock}`}
               icon={<Package color="#5068e6" size={20} />}
               kind="blue"
             />
             <StatCard
-              label="Stock Asset Value"
+              label={t('inventory.stock_valuation')}
               value={<CurrencyDisplay value={p.summary.stockValue} />}
-              detail={`Avg Cost: ${p.averageCost} BDT`}
+              detail={`${t('inventory.avg_cost', { defaultValue: 'Avg Cost' })}: ${formatCurrency(p.averageCost)}`}
               icon={<Coins color="#28a476" size={20} />}
               kind="green"
             />
             <StatCard
-              label="Revenue Generated"
+              label={t('reports.sales_revenue')}
               value={<CurrencyDisplay value={p.summary.revenue} />}
-              detail={`${p.summary.totalSold} units sold`}
+              detail={`${p.summary.totalSold} ${t('products.units')}`}
               icon={<ShoppingBag color="#d28d2b" size={20} />}
               kind="amber"
             />
             <StatCard
-              label="Estimated Gross Profit"
+              label={t('reports.gross_profit')}
               value={<CurrencyDisplay value={p.summary.estimatedProfit} />}
-              detail="Total Sales minus COGS"
+              detail={t('reports.financial_overview')}
               icon={<TrendingUp color="#28a476" size={20} />}
               kind="green"
             />
@@ -111,7 +113,7 @@ export default function ProductDetailPage() {
           <div className="detail-grid">
             <section className="card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 15 }}>
-                <h3 style={{ margin: 0 }}>Basic Information</h3>
+                <h3 style={{ margin: 0 }}>{t('products.basic_info')}</h3>
                 {p.image && (
                   <img
                     src={p.image}
@@ -128,21 +130,21 @@ export default function ProductDetailPage() {
                 )}
               </div>
               <dl>
-                <dt>Product SKU</dt>
+                <dt>{t('products.sku')}</dt>
                 <dd>
                   <code>{p.sku}</code>
                 </dd>
 
-                <dt>Barcode</dt>
+                <dt>{t('products.barcode')}</dt>
                 <dd>{p.barcode || '—'}</dd>
 
-                <dt>Category</dt>
+                <dt>{t('products.category')}</dt>
                 <dd>{p.category?.name || '—'}</dd>
 
-                <dt>Brand</dt>
+                <dt>{t('products.brand')}</dt>
                 <dd>{p.brand || '—'}</dd>
 
-                <dt>Primary Supplier</dt>
+                <dt>{t('products.supplier')}</dt>
                 <dd>
                   {p.supplier ? (
                     <Link href={`/dashboard/suppliers/${p.supplier.id}`} style={{ color: '#5068e6' }}>
@@ -153,53 +155,53 @@ export default function ProductDetailPage() {
                   )}
                 </dd>
 
-                <dt>Unit</dt>
+                <dt>{t('products.unit')}</dt>
                 <dd>{p.unit}</dd>
 
-                <dt>Status</dt>
+                <dt>{t('common.status')}</dt>
                 <dd>
                   <StatusBadge value={p.status} />
                 </dd>
 
-                <dt>Description</dt>
-                <dd style={{ gridColumn: 'span 2' }}>{p.description || 'No description provided.'}</dd>
+                <dt>{t('common.description')}</dt>
+                <dd style={{ gridColumn: 'span 2' }}>{p.description || '—'}</dd>
               </dl>
             </section>
 
             <section className="card">
-              <h3>Pricing & Profit Summary</h3>
+              <h3>{t('products.pricing_stock_policy')}</h3>
               <dl>
-                <dt>Purchase Cost Price</dt>
+                <dt>{t('products.purchase_price')}</dt>
                 <dd>
                   <CurrencyDisplay value={p.purchasePrice} />
                 </dd>
 
-                <dt>Selling Price</dt>
+                <dt>{t('products.selling_price')}</dt>
                 <dd>
                   <strong>
                     <CurrencyDisplay value={p.sellingPrice} />
                   </strong>
                 </dd>
 
-                <dt>Weighted Average Cost</dt>
+                <dt>{t('reports.cogs')}</dt>
                 <dd>
                   <CurrencyDisplay value={p.averageCost} />
                 </dd>
 
-                <dt>Wholesale Price</dt>
+                <dt>{t('products.wholesale_price')}</dt>
                 <dd>{p.wholesalePrice ? <CurrencyDisplay value={p.wholesalePrice} /> : '—'}</dd>
 
-                <dt>Total Units Purchased</dt>
-                <dd>{p.summary.totalPurchased} units</dd>
+                <dt>{t('purchases.title')}</dt>
+                <dd>{p.summary.totalPurchased} {t('products.units')}</dd>
 
-                <dt>Total Units Sold</dt>
-                <dd>{p.summary.totalSold} units</dd>
+                <dt>{t('sales.title')}</dt>
+                <dd>{p.summary.totalSold} {t('products.units')}</dd>
 
-                <dt>Reorder Threshold (Min)</dt>
-                <dd>{p.minimumStock} units</dd>
+                <dt>{t('products.minimum_stock')}</dt>
+                <dd>{p.minimumStock} {t('products.units')}</dd>
 
-                <dt>Maximum Stock Capacity</dt>
-                <dd>{p.maximumStock ? `${p.maximumStock} units` : 'Unlimited'}</dd>
+                <dt>{t('products.maximum_stock')}</dt>
+                <dd>{p.maximumStock ? `${p.maximumStock}` : '—'}</dd>
               </dl>
             </section>
           </div>
@@ -208,14 +210,23 @@ export default function ProductDetailPage() {
           <section className="card">
             <div className="card-head">
               <div>
-                <h3>Recent Stock Movements</h3>
-                <p>Accountable audit trail for this product</p>
+                <h3>{t('inventory.stock_movements')}</h3>
+                <p>{t('inventory.audit_trail_desc')}</p>
               </div>
               <Link href={`/dashboard/inventory/movements?productId=${p.id}`} style={{ fontSize: 12, color: '#5068e6' }}>
-                View all movements →
+                {t('inventory.stock_movements')} →
               </Link>
             </div>
-            <DataTable columns={['Date', 'Type', 'Quantity', 'Unit Cost', 'Reason', 'Reference']}>
+            <DataTable
+              columns={[
+                t('common.date'),
+                t('common.type'),
+                t('documents.qty'),
+                t('documents.unit_cost'),
+                t('inventory.reason'),
+                t('activity_logs.reference'),
+              ]}
+            >
               {p.movements && p.movements.length ? (
                 p.movements.map((m: any) => (
                   <tr key={m.id}>
@@ -240,7 +251,7 @@ export default function ProductDetailPage() {
               ) : (
                 <tr>
                   <td colSpan={6} className="empty">
-                    No stock movements recorded yet for this product.
+                    {t('inventory.no_records')}
                   </td>
                 </tr>
               )}

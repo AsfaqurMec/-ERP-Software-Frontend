@@ -10,15 +10,16 @@ import {
   CurrencyDisplay,
   DataTable,
   DataTablePagination,
-  DataTableToolbar,
   DateDisplay,
   EmptyTableState,
   LoadingSpinner,
   PageContainer,
   PageHeader,
 } from '../../../../components/ui';
+import { useTranslation } from '../../../../provider';
 
 export default function SalesReturnsPage() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
 
@@ -32,35 +33,35 @@ export default function SalesReturnsPage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title="Sales Returns"
-            description="Audit and record returned goods from customers, restocking inventory and crediting customer balances."
+            title={t('sales.returns_title')}
+            description={t('sales.returns_desc')}
             breadcrumbs={[
-              { label: 'Dashboard', href: '/dashboard' },
-              { label: 'Sales', href: '/dashboard/sales' },
-              { label: 'Returns' },
+              { label: t('common.dashboard'), href: '/dashboard' },
+              { label: t('sales.title'), href: '/dashboard/sales' },
+              { label: t('sales.returns_title') },
             ]}
             action={
               <Link className="primary-button" href="/dashboard/sales/returns/create">
-                + New Sales Return
+                + {t('sales.record_return')}
               </Link>
             }
           />
 
           {returnsQuery.isLoading ? (
-            <LoadingSpinner label="Loading sales returns records…" />
+            <LoadingSpinner label={t('common.loading')} />
           ) : returnsQuery.error ? (
             <div className="error">{returnsQuery.error.message}</div>
           ) : (
             <>
               <DataTable
                 columns={[
-                  'Return Date',
-                  'Invoice #',
-                  'Customer',
-                  'Return Amount',
-                  'Reason',
-                  'Items Returned',
-                  'Actions',
+                  t('common.date'),
+                  t('sales.invoice_number'),
+                  t('sales.customer'),
+                  t('common.total'),
+                  t('inventory.reason'),
+                  t('products.units'),
+                  t('common.actions'),
                 ]}
               >
                 {returnsQuery.data?.data.length ? (
@@ -72,23 +73,23 @@ export default function SalesReturnsPage() {
                       <td>
                         <strong>{r.sale?.invoiceNumber || '—'}</strong>
                       </td>
-                      <td>{r.sale?.customer?.name || 'Walk-in Customer'}</td>
+                      <td>{r.sale?.customer?.name || t('common.walk_in_customer')}</td>
                       <td>
                         <strong style={{ color: '#ef4444' }}>
                           <CurrencyDisplay value={r.total} />
                         </strong>
                       </td>
                       <td>{r.reason}</td>
-                      <td>{r.items?.length || 0} line items</td>
+                      <td>{r.items?.length || 0}</td>
                       <td>
-                        <Link href={`/dashboard/sales/returns/${r.id}`}>View Receipt</Link>
+                        <Link href={`/dashboard/sales/returns/${r.id}`}>{t('common.view')}</Link>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
                     <td colSpan={7}>
-                      <EmptyTableState message="No sales returns recorded." />
+                      <EmptyTableState message={t('sales.no_sales_found')} />
                     </td>
                   </tr>
                 )}

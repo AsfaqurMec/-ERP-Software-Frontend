@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../components/auth-guard';
 import { Shell } from '../../../components/shell';
 import { api, extractItems } from '../../../lib/api';
+import { useTranslation } from '../../../provider';
 import {
   CurrencyDisplay,
   DataTable,
@@ -33,6 +34,7 @@ interface Category {
 }
 
 export default function CategoriesPage() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
 
   const categoriesQuery = useQuery({
@@ -51,12 +53,12 @@ export default function CategoriesPage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title="Categories"
-            description="Organize catalog groupings and monitor sales, procurement volume and gross margins per category."
-            breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Categories' }]}
+            title={t('categories.title')}
+            description={t('categories.description')}
+            breadcrumbs={[{ label: t('common.dashboard'), href: '/dashboard' }, { label: t('categories.title') }]}
             action={
               <Link className="primary-button" href="/dashboard/categories/create">
-                + Add Category
+                {t('categories.add_category')}
               </Link>
             }
           />
@@ -65,16 +67,26 @@ export default function CategoriesPage() {
             <SearchInput
               value={search}
               onChange={setSearch}
-              placeholder="Search category name or description…"
+              placeholder={t('common.search')}
             />
           </DataTableToolbar>
 
           {categoriesQuery.isLoading ? (
-            <LoadingSpinner label="Loading categories…" />
+            <LoadingSpinner label={t('common.loading')} />
           ) : categoriesQuery.error ? (
             <div className="error">{categoriesQuery.error.message}</div>
           ) : (
-            <DataTable columns={['Category', 'Product Count', 'Total Sales', 'Purchases', 'Gross Profit', 'Status', 'Actions']}>
+            <DataTable
+              columns={[
+                t('categories.title'),
+                t('categories.product_count'),
+                t('categories.total_sales'),
+                t('categories.purchases'),
+                t('categories.gross_profit'),
+                t('common.status'),
+                t('common.actions'),
+              ]}
+            >
               {filtered.length ? (
                 filtered.map((c) => (
                   <tr key={c.id}>
@@ -117,7 +129,7 @@ export default function CategoriesPage() {
                       </div>
                     </td>
                     <td>
-                      <span style={{ fontWeight: 600 }}>{c.metrics.productCount} products</span>
+                      <span style={{ fontWeight: 600 }}>{c.metrics.productCount}</span>
                     </td>
                     <td>
                       <strong>
@@ -136,14 +148,14 @@ export default function CategoriesPage() {
                       <StatusBadge value={c.status} />
                     </td>
                     <td>
-                      <Link href={`/dashboard/categories/${c.id}/edit`}>Edit</Link>
+                      <Link href={`/dashboard/categories/${c.id}/edit`}>{t('common.edit')}</Link>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td colSpan={7}>
-                    <EmptyTableState message="No categories found matching your search." />
+                    <EmptyTableState message={t('categories.no_categories_found')} />
                   </td>
                 </tr>
               )}

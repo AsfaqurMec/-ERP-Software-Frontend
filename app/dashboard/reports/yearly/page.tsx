@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../../components/auth-guard';
 import { Shell } from '../../../../components/shell';
 import { api } from '../../../../lib/api';
+import { useTranslation } from '../../../../provider';
 import {
   CurrencyDisplay,
   LoadingSpinner,
@@ -19,6 +20,7 @@ import { AppBarChart } from '../../../../components/charts';
 import { ShoppingBag, Package, TrendingUp, Coins, Receipt } from 'lucide-react';
 
 export default function YearlyReportPage() {
+  const { t } = useTranslation();
   const [year, setYear] = useState(new Date().getFullYear());
 
   const yearlyQuery = useQuery({
@@ -31,12 +33,12 @@ export default function YearlyReportPage() {
       <Shell>
         <PageContainer>
           <PageHeader
-            title="Yearly Annual Performance"
-            description={`Executive annual review of revenue, procurement, operational expenses and net margins for fiscal ${year}.`}
+            title={t('reports.yearly_title')}
+            description={`${t('reports.yearly_desc')} (${year})`}
             breadcrumbs={[
-              { label: 'Dashboard', href: '/dashboard' },
-              { label: 'Reports', href: '/dashboard/reports' },
-              { label: 'Yearly' },
+              { label: t('common.dashboard'), href: '/dashboard' },
+              { label: t('reports.title'), href: '/dashboard/reports' },
+              { label: t('reports.yearly_title') },
             ]}
             action={
               <select
@@ -54,7 +56,7 @@ export default function YearlyReportPage() {
           />
 
           {yearlyQuery.isLoading ? (
-            <LoadingSpinner label="Compiling annual accounting reports…" />
+            <LoadingSpinner label={t('common.loading')} />
           ) : yearlyQuery.error ? (
             <ErrorState message={yearlyQuery.error.message} onRetry={() => yearlyQuery.refetch()} />
           ) : (
@@ -62,37 +64,37 @@ export default function YearlyReportPage() {
               {/* Yearly KPI Snapshot */}
               <StatCardGrid columns={5}>
                 <StatCard
-                  label="Annual Revenue"
+                  label={t('reports.sales_revenue')}
                   value={<CurrencyDisplay value={yearlyQuery.data.sales.revenue} />}
-                  detail={`${yearlyQuery.data.sales.orders} confirmed orders`}
+                  detail={`${yearlyQuery.data.sales.orders} ${t('sales.orders')}`}
                   icon={<ShoppingBag color="#5068e6" size={20} />}
                   kind="blue"
                 />
                 <StatCard
-                  label="Annual Purchases"
+                  label={t('reports.purchases_title')}
                   value={<CurrencyDisplay value={yearlyQuery.data.purchases.total} />}
-                  detail={`${yearlyQuery.data.purchases.orders} purchase orders`}
+                  detail={`${yearlyQuery.data.purchases.orders} ${t('sales.orders')}`}
                   icon={<Package color="#d28d2b" size={20} />}
                   kind="amber"
                 />
                 <StatCard
-                  label="Annual COGS"
+                  label={t('reports.cogs')}
                   value={<CurrencyDisplay value={yearlyQuery.data.sales.cogs} />}
-                  detail="Cost of goods sold"
+                  detail={t('reports.cogs_detail')}
                   icon={<Package color="#71798d" size={20} />}
                   kind="blue"
                 />
                 <StatCard
-                  label="Annual Expenses"
+                  label={t('expenses.title')}
                   value={<CurrencyDisplay value={yearlyQuery.data.expenses.total} />}
-                  detail={`${yearlyQuery.data.expenses.count} expense records`}
+                  detail={`${yearlyQuery.data.expenses.count}`}
                   icon={<Receipt color="#ef4444" size={20} />}
                   kind="rose"
                 />
                 <StatCard
-                  label="Annual Net Profit"
+                  label={t('reports.net_profit')}
                   value={<CurrencyDisplay value={yearlyQuery.data.profit.netProfit} />}
-                  detail="Bottom line net margin"
+                  detail={t('reports.net_profit_detail')}
                   icon={<Coins color="#28a476" size={20} />}
                   kind={Number(yearlyQuery.data.profit.netProfit) >= 0 ? 'green' : 'rose'}
                 />
@@ -101,8 +103,8 @@ export default function YearlyReportPage() {
               {/* Monthly Comparison Bar Chart */}
               <div style={{ marginTop: 16 }}>
                 <ChartCard
-                  title={`Monthly Sales vs Profit Breakdown (Fiscal ${year})`}
-                  subtitle="Monthly comparative analysis over 12 months"
+                  title={`${t('dashboard.revenue_performance')} (${year})`}
+                  subtitle={t('reports.period_summary_desc')}
                 >
                   <AppBarChart
                     data={yearlyQuery.data.monthlyComparison.map((m: any) => ({
@@ -111,8 +113,8 @@ export default function YearlyReportPage() {
                       profit: m.profit,
                     }))}
                     dataKeys={[
-                      { key: 'sales', color: '#5068e6', label: 'Sales Revenue' },
-                      { key: 'profit', color: '#28a476', label: 'Gross Margin' },
+                      { key: 'sales', color: '#5068e6', label: t('dashboard.revenue') },
+                      { key: 'profit', color: '#28a476', label: t('dashboard.profit') },
                     ]}
                   />
                 </ChartCard>

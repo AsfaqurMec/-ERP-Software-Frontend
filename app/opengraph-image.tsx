@@ -73,36 +73,37 @@ export default async function Image() {
             <img
               src={logoBase64}
               alt={businessName}
-              width={110}
-              height={110}
+              width={140}
+              height={140}
               style={{
                 objectFit: 'contain',
-                borderRadius: '20px',
+                borderRadius: '10px',
                 background: '#ffffff',
                 padding: '8px',
-                boxShadow: '0 16px 36px rgba(0, 0, 0, 0.4)',
-                border: '2px solid rgba(255, 255, 255, 0.25)',
+                boxShadow: '0 16px 36px rgba(0, 0, 0, 0.28)',
+                border: '2px solid rgba(255, 255, 255, 0.48)',
               }}
             />
           ) : (
-            <div
-              style={{
-                width: '100px',
-                height: '100px',
-                borderRadius: '24px',
-                background: 'linear-gradient(135deg, #6366f1 0%, #4338ca 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#ffffff',
-                fontSize: '44px',
-                fontWeight: 900,
-                boxShadow: '0 20px 40px rgba(99, 102, 241, 0.4)',
-                border: '2px solid rgba(255, 255, 255, 0.2)',
-              }}
-            >
-              {businessName.slice(0, 2).toUpperCase()}
-            </div>
+            ""
+            // <div
+            //   style={{
+            //     width: '100px',
+            //     height: '100px',
+            //     borderRadius: '24px',
+            //     background: 'linear-gradient(135deg, #6366f1 0%, #4338ca 100%)',
+            //     display: 'flex',
+            //     alignItems: 'center',
+            //     justifyContent: 'center',
+            //     color: '#ffffff',
+            //     fontSize: '44px',
+            //     fontWeight: 900,
+            //     boxShadow: '0 20px 40px rgba(99, 102, 241, 0.4)',
+            //     border: '2px solid rgba(255, 255, 255, 0.2)',
+            //   }}
+            // >
+            //   {businessName.slice(0, 2).toUpperCase()}
+            // </div>
           )}
 
           <div

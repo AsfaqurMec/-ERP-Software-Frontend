@@ -68,7 +68,7 @@ export default function Login() {
             textAlign: 'center',
           }}
         >
-          {siteLogo ? (
+          {siteLogo && (
             <img
               src={siteLogo}
               alt={siteName}
@@ -81,23 +81,6 @@ export default function Login() {
                 boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
               }}
             />
-          ) : (
-            <span
-              style={{
-                display: 'grid',
-                placeItems: 'center',
-                width: 72,
-                height: 72,
-                borderRadius: 0,
-                background: 'linear-gradient(135deg, #4f46e5 0%, #3730a3 100%)',
-                color: 'white',
-                font: '800 24px Manrope, sans-serif',
-                boxShadow: '0 4px 16px rgba(79,70,229,0.35)',
-                padding: 0,
-              }}
-            >
-              {siteName.substring(0, 2).toUpperCase()}
-            </span>
           )}
           <h1 style={{ margin: 0, fontSize: 26, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>
             {siteName}

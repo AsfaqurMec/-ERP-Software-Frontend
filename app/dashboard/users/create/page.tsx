@@ -47,20 +47,30 @@ export default function CreateUserPage() {
     if (!file) return;
 
     setUploadingImage(true);
+    setErrorMsg(null);
     const reader = new FileReader();
     reader.onloadend = async () => {
       const base64 = reader.result as string;
       try {
-        const uploadRes = await api('/upload/image', {
+        const uploadRes = await api<{ url: string }>('/upload/image', {
           method: 'POST',
           body: JSON.stringify({ file: base64, folder: 'avatars' }),
         });
-        setForm((prev) => ({ ...prev, avatar: uploadRes.url }));
+        if (uploadRes?.url) {
+          setForm((prev) => ({ ...prev, avatar: uploadRes.url }));
+        } else {
+          throw new Error('No image URL returned from upload');
+        }
       } catch (err: any) {
-        setErrorMsg(err.message || 'Failed to process avatar');
+        setErrorMsg(err?.message || 'Failed to process avatar image');
       } finally {
         setUploadingImage(false);
+        e.target.value = '';
       }
+    };
+    reader.onerror = () => {
+      setUploadingImage(false);
+      setErrorMsg('Failed to read file from device');
     };
     reader.readAsDataURL(file);
   }

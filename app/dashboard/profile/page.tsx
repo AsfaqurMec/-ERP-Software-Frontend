@@ -89,21 +89,31 @@ export default function ProfilePage() {
     if (!file) return;
 
     setUploadingImage(true);
+    setProfileMsg(null);
     const reader = new FileReader();
     reader.onloadend = async () => {
       const base64 = reader.result as string;
       try {
-        const uploadRes = await api('/upload/image', {
+        const uploadRes = await api<{ url: string }>('/upload/image', {
           method: 'POST',
           body: JSON.stringify({ file: base64, folder: 'avatars' }),
         });
-        setForm((prev) => ({ ...prev, avatar: uploadRes.url }));
-        setProfileMsg({ type: 'success', text: 'Avatar uploaded. Click "Save Changes" to apply.' });
+        if (uploadRes?.url) {
+          setForm((prev) => ({ ...prev, avatar: uploadRes.url }));
+          setProfileMsg({ type: 'success', text: 'Avatar uploaded. Click "Save Changes" to apply.' });
+        } else {
+          throw new Error('No image URL returned from upload');
+        }
       } catch (err: any) {
-        setProfileMsg({ type: 'error', text: err.message || 'Avatar upload failed' });
+        setProfileMsg({ type: 'error', text: err?.message || 'Avatar upload failed' });
       } finally {
         setUploadingImage(false);
+        e.target.value = '';
       }
+    };
+    reader.onerror = () => {
+      setUploadingImage(false);
+      setProfileMsg({ type: 'error', text: 'Failed to read image file from device' });
     };
     reader.readAsDataURL(file);
   }

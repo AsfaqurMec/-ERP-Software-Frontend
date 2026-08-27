@@ -121,6 +121,7 @@ export default function SettingsPage() {
     }
 
     setUploadingLogo(true);
+    setErrorMessage('');
     try {
       const reader = new FileReader();
       reader.onload = async () => {
@@ -129,21 +130,32 @@ export default function SettingsPage() {
           const res = await api<{ url: string }>('/upload/image', {
             method: 'POST',
             body: JSON.stringify({
-              image: base64Data,
+              file: base64Data,
               folder: 'stockpilot/branding',
             }),
           });
-          handleChange('business_logo', res.url || base64Data);
-        } catch {
-          handleChange('business_logo', base64Data);
+          if (res?.url) {
+            handleChange('business_logo', res.url);
+          } else {
+            throw new Error('Upload succeeded but no image URL was returned');
+          }
+        } catch (err: any) {
+          setErrorMessage(err?.message || 'Failed to upload logo image to server.');
         } finally {
           setUploadingLogo(false);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
         }
+      };
+      reader.onerror = () => {
+        setUploadingLogo(false);
+        setErrorMessage('Failed to read image file from device.');
       };
       reader.readAsDataURL(file);
     } catch {
       setUploadingLogo(false);
-      setErrorMessage('Failed to read image file.');
+      setErrorMessage('Failed to process image file.');
     }
   }
 

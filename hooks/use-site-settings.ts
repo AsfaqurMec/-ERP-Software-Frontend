@@ -35,7 +35,7 @@ export function useSiteSettings() {
           return res || {};
         } catch {
           return {
-            business_name: 'StockPilot',
+            business_name: 'ব্যবসারথি',
             business_logo: '',
             currency_symbol: '৳',
           };

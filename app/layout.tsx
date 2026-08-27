@@ -17,11 +17,11 @@ export const viewport: Viewport = {
 
 export async function generateMetadata(): Promise<Metadata> {
   const brand = await getServerBrandSettings();
-  const businessName = brand.business_name || 'HAMIM GROUP';
+  const businessName = brand.business_name || 'ব্যবসারথি';
   const logoUrl = brand.business_logo || 'https://res.cloudinary.com/dzmglrehf/image/upload/v1787417330/stockpilot/branding/ux8pimioeqtb1ofb01jw.png';
 
-  const title = `${businessName} — Enterprise Operations & Sales ERP`;
-  const description = `${businessName} management portal. Real-time inventory control, POS invoicing, purchase automation, and customer & supplier due ledgers.`;
+  const title = `${businessName} — আপনার ব্যবসার স্মার্ট সহকারী`;
+  const description = `${businessName} - রিয়েল-টাইম ইনভেন্টরি নিয়ন্ত্রণ, POS ইনভয়েস তৈরি, স্বয়ংক্রিয় ক্রয় ব্যবস্থাপনা এবং গ্রাহক ও সরবরাহকারীর বকেয়া হিসাব ব্যবস্থাপনা।`;
 
   return {
     metadataBase: new URL(appUrl),
@@ -32,7 +32,8 @@ export async function generateMetadata(): Promise<Metadata> {
     description,
     keywords: [
       businessName,
-      'HAMIM GROUP',
+      'ব্যবসারথি',
+      'Byabsharathi',
       'Inventory Management',
       'Sales Invoicing',
       'POS Software',

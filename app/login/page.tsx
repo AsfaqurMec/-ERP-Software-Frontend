@@ -19,7 +19,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const siteName = settings?.business_name || 'StockPilot';
+  const siteName = settings?.business_name || 'ব্যবসারথি';
   const siteLogo = settings?.business_logo;
 
   async function submit(e: FormEvent) {

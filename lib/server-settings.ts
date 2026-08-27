@@ -27,8 +27,8 @@ export async function getServerBrandSettings(): Promise<ServerBrandSettings> {
       const data = json.data || json;
       if (data && typeof data === 'object') {
         return {
-          business_name: data.business_name || 'HAMIM GROUP',
-          business_logo: data.business_logo || 'https://res.cloudinary.com/dzmglrehf/image/upload/v1787417330/stockpilot/branding/ux8pimioeqtb1ofb01jw.png',
+          business_name: data.business_name || 'ব্যবসারথি',
+          business_logo: data.business_logo || '',
           business_phone: data.business_phone || '',
           business_email: data.business_email || '',
           business_address: data.business_address || '',
@@ -42,8 +42,8 @@ export async function getServerBrandSettings(): Promise<ServerBrandSettings> {
   }
 
   return {
-    business_name: 'HAMIM GROUP',
-    business_logo: 'https://res.cloudinary.com/dzmglrehf/image/upload/v1787417330/stockpilot/branding/ux8pimioeqtb1ofb01jw.png',
+    business_name: 'ব্যবসারথি',
+    business_logo: '',
     currency_symbol: '৳',
   };
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { api } from '../lib/api';
 
@@ -42,64 +42,81 @@ function AuthGuardRoot({
 }) {
   const [user, setUser] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
+  const isReadyRef = useRef(false);
 
   useEffect(() => {
     let isMounted = true;
 
-    function verifyAuth() {
-      if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined') return;
 
-      const token = localStorage.getItem('token');
-      if (!token) {
-        const nextParam = path && path !== '/dashboard' ? `?next=${encodeURIComponent(path)}` : '';
-        router.replace(`/login${nextParam}`);
-        return;
-      }
-
-      // Check if user object is cached in localStorage for instant optimistic rendering
-      try {
-        const cachedUser = localStorage.getItem('user');
-        if (cachedUser) {
-          setUser(JSON.parse(cachedUser));
-          setReady(true);
-        }
-      } catch {
-        // ignore JSON parse error
-      }
-
-      // Background session verification (runs once on mount)
-      api<Session>('/auth/me')
-        .then((sessionUser) => {
-          if (!isMounted) return;
-          localStorage.setItem('user', JSON.stringify(sessionUser));
-          setUser(sessionUser);
-          setReady(true);
-        })
-        .catch((err) => {
-          if (!isMounted) return;
-          console.warn('Session validation failed:', err?.message || err);
-          // If token is invalid or expired, clear and redirect to login
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          router.replace('/login');
-        });
+    const token = localStorage.getItem('token');
+    if (!token) {
+      const nextParam = path && path !== '/dashboard' ? `?next=${encodeURIComponent(path)}` : '';
+      router.replace(`/login${nextParam}`);
+      return;
     }
 
-    verifyAuth();
-
-    // Safety timeout: If backend fails to respond within 8 seconds, reject unverified session
-    const safetyTimer = setTimeout(() => {
-      if (isMounted && !ready) {
-        console.warn('Session verification timed out. Redirecting to login.');
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        router.replace('/login');
+    // 1. Optimistic rendering: If cached user is available in localStorage, render instantly
+    let hasCachedUser = false;
+    try {
+      const cached = localStorage.getItem('user');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && typeof parsed === 'object') {
+          setUser(parsed);
+          setReady(true);
+          isReadyRef.current = true;
+          hasCachedUser = true;
+        }
       }
-    }, 8000);
+    } catch {
+      // ignore JSON parse error
+    }
+
+    // 2. Validate & refresh session with backend
+    api<Session>('/auth/me')
+      .then((sessionUser) => {
+        if (!isMounted) return;
+        localStorage.setItem('user', JSON.stringify(sessionUser));
+        setUser(sessionUser);
+        setReady(true);
+        isReadyRef.current = true;
+      })
+      .catch((err) => {
+        if (!isMounted) return;
+        console.warn('Session verification notice:', err?.message || err);
+
+        // Check if token was invalidated/removed (e.g. 401 response in api.ts)
+        const currentToken = localStorage.getItem('token');
+        const isUnauthorized = !currentToken || /unauthorized|expired|invalid/i.test(err?.message || '');
+
+        if (isUnauthorized) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          const nextParam = path && path !== '/dashboard' ? `?next=${encodeURIComponent(path)}` : '';
+          router.replace(`/login${nextParam}`);
+        } else if (!hasCachedUser) {
+          // If network or server error but not 401, unblock spinner so user is not permanently stuck
+          setReady(true);
+          isReadyRef.current = true;
+        }
+      });
+
+    // 3. Fallback spinner timeout: If backend is slow, ensure loading spinner clears without evicting the token
+    const fallbackTimer = setTimeout(() => {
+      if (isMounted && !isReadyRef.current) {
+        if (localStorage.getItem('token')) {
+          setReady(true);
+          isReadyRef.current = true;
+        } else {
+          router.replace('/login');
+        }
+      }
+    }, 4000);
 
     return () => {
       isMounted = false;
-      clearTimeout(safetyTimer);
+      clearTimeout(fallbackTimer);
     };
   }, []); // Run once on initial layout mount, NOT on every route change!
 

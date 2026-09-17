@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../../components/auth-guard';
 import { Shell } from '../../../../components/shell';
+import { ExportMenu } from '../../../../components/export-menu';
 import { api } from '../../../../lib/api';
 import {
   CurrencyDisplay,
@@ -125,6 +126,21 @@ export default function PurchaseDuePage() {
               { label: t('payments.title'), href: '/dashboard/payments' },
               { label: t('dues.supplier_due_title') },
             ]}
+            action={
+              <ExportMenu
+                filename="StockPilot_Accounts_Payable"
+                columns={[
+                  { header: t('purchases.purchase_number'), key: 'purchaseNumber' },
+                  { header: t('common.date'), key: 'purchaseDate', format: (v) => v ? new Date(v).toLocaleDateString() : '—' },
+                  { header: t('purchases.supplier'), key: 'supplier.name', formatter: (r) => r.supplier?.name || '—' },
+                  { header: t('purchases.grand_total'), key: 'grandTotal' },
+                  { header: t('purchases.paid_amount'), key: 'paidAmount' },
+                  { header: t('purchases.due_amount'), key: 'dueAmount' },
+                  { header: t('purchases.payment_status'), key: 'paymentStatus' },
+                ]}
+                data={duePurchasesQuery.data?.data || []}
+              />
+            }
           />
 
           {ov && (

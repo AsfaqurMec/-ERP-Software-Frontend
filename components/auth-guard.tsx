@@ -87,17 +87,15 @@ function AuthGuardRoot({
 
     verifyAuth();
 
-    // Safety timeout: Never leave the user stuck on the loading screen
+    // Safety timeout: If backend fails to respond within 8 seconds, reject unverified session
     const safetyTimer = setTimeout(() => {
-      if (isMounted) {
-        const token = localStorage.getItem('token');
-        if (token) {
-          setReady(true);
-        } else {
-          router.replace('/login');
-        }
+      if (isMounted && !ready) {
+        console.warn('Session verification timed out. Redirecting to login.');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        router.replace('/login');
       }
-    }, 1500);
+    }, 8000);
 
     return () => {
       isMounted = false;

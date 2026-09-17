@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../../components/auth-guard';
 import { Shell } from '../../../../components/shell';
+import { ExportMenu } from '../../../../components/export-menu';
 import { api } from '../../../../lib/api';
 import { useTranslation } from '../../../../provider';
 import {
@@ -45,6 +46,20 @@ export default function PurchasesReportPage() {
             ]}
             action={
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                <ExportMenu
+                  filename={`StockPilot_Purchases_Report_${from}_to_${to}`}
+                  columns={[
+                    { header: t('purchases.purchase_number'), key: 'purchaseNumber' },
+                    { header: t('common.date'), key: 'purchaseDate', format: (v) => v ? new Date(v).toLocaleDateString() : '—' },
+                    { header: t('purchases.supplier'), key: 'supplier.name', formatter: (r) => r.supplier?.name || '—' },
+                    { header: t('products.units'), key: 'itemsCount', formatter: (r) => r.items?.length || 0 },
+                    { header: t('purchases.grand_total'), key: 'grandTotal' },
+                    { header: t('purchases.paid_amount'), key: 'paidAmount' },
+                    { header: t('purchases.due_amount'), key: 'dueAmount' },
+                    { header: t('purchases.payment_status'), key: 'paymentStatus' },
+                  ]}
+                  data={purchasesReportQuery.data?.purchases || []}
+                />
                 <input
                   type="date"
                   value={from}

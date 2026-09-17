@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../../components/auth-guard';
 import { Shell } from '../../../../components/shell';
+import { ExportMenu } from '../../../../components/export-menu';
 import { api } from '../../../../lib/api';
 import {
   CurrencyDisplay,
@@ -274,6 +275,20 @@ export default function PurchaseDetailPage() {
                 <h3>{t('products.title')}</h3>
                 <p>{t('documents.line_items')}</p>
               </div>
+              <ExportMenu
+                filename={`StockPilot_PO_${p.purchaseNumber}_Items`}
+                columns={[
+                  { header: t('products.name'), key: 'product.name', formatter: (r: any) => r.product?.name || '—' },
+                  { header: t('products.sku'), key: 'product.sku', formatter: (r: any) => r.product?.sku || '—' },
+                  { header: t('documents.qty'), key: 'quantity' },
+                  { header: t('documents.unit_cost'), key: 'unitCost' },
+                  { header: t('common.discount'), key: 'discount' },
+                  { header: t('common.tax'), key: 'tax' },
+                  { header: t('common.subtotal'), key: 'subtotal' },
+                  { header: t('common.grand_total'), key: 'total' },
+                ]}
+                data={p.items || []}
+              />
             </div>
             <DataTable
               columns={[
@@ -330,6 +345,17 @@ export default function PurchaseDetailPage() {
                   <h3>{t('payments.supplier_disbursements')}</h3>
                   <p>{t('payments.title')}</p>
                 </div>
+                <ExportMenu
+                  filename={`StockPilot_PO_${p.purchaseNumber}_Payments`}
+                  columns={[
+                    { header: t('common.date'), key: 'date', format: (v: any) => v ? new Date(v).toLocaleDateString() : '—' },
+                    { header: t('common.amount'), key: 'amount' },
+                    { header: t('common.payment_method'), key: 'method' },
+                    { header: t('activity_logs.reference'), key: 'reference' },
+                    { header: t('common.description'), key: 'note' },
+                  ]}
+                  data={p.payments || []}
+                />
               </div>
               <DataTable
                 columns={[

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../../components/auth-guard';
+import { ExportMenu } from '../../../../components/export-menu';
 import { api, money } from '../../../../lib/api';
 import { useSiteSettings } from '../../../../hooks/use-site-settings';
 import { CurrencyDisplay, DateDisplay, LoadingSpinner, ErrorState } from '../../../../components/ui';
@@ -146,14 +147,29 @@ export default function InvoicePrintPage() {
           <Link href={`/dashboard/sales/${id}`} className="ghost" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
             <ArrowLeft size={16} /> {t('common.back')}
           </Link>
-          <button
-            type="button"
-            onClick={handlePrint}
-            className="primary"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
-          >
-            <Printer size={16} /> {t('common.export')}
-          </button>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <ExportMenu
+              filename={`StockPilot_Invoice_${s.invoiceNumber}`}
+              columns={[
+                { header: t('products.name'), key: 'product.name', formatter: (r: any) => r.product?.name || 'Item' },
+                { header: t('products.sku'), key: 'product.sku', formatter: (r: any) => r.product?.sku || '—' },
+                { header: t('documents.qty'), key: 'quantity' },
+                { header: t('documents.unit_price'), key: 'unitPrice' },
+                { header: t('common.discount'), key: 'discount' },
+                { header: t('common.tax'), key: 'tax' },
+                { header: t('common.total'), key: 'total' },
+              ]}
+              data={s.items || []}
+            />
+            <button
+              type="button"
+              onClick={handlePrint}
+              className="primary"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+            >
+              <Printer size={16} /> {t('common.print')}
+            </button>
+          </div>
         </div>
 
         {/* Invoice Paper Card */}

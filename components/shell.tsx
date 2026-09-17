@@ -74,6 +74,7 @@ const navSections: AccordionNavGroup[] = [
     icon: LayoutDashboard,
     subItems: [
       { name: 'Executive Dashboard', nameKey: 'nav.executive_dashboard', href: '/dashboard' },
+      { name: 'Owner Intelligence & AI Advisory', nameKey: 'nav.owner_intelligence', href: '/dashboard/intelligence', badge: 'AI' },
       { name: 'Live Alerts & Warnings', nameKey: 'nav.live_alerts', href: '/dashboard/notifications' },
     ],
   },
@@ -770,6 +771,22 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
                           />
                           <span>{subTitle}</span>
                         </div>
+                        {sub.badge && (
+                          <span
+                            style={{
+                              background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+                              color: '#fff',
+                              fontSize: '0.62rem',
+                              fontWeight: 800,
+                              padding: '1px 6px',
+                              borderRadius: 4,
+                              letterSpacing: '0.5px',
+                              boxShadow: '0 0 8px rgba(168,85,247,0.35)',
+                            }}
+                          >
+                            {sub.badge}
+                          </span>
+                        )}
                         {sub.name.includes('Alerts') && totalAlertsCount > 0 && (
                           <span
                             style={{
@@ -1014,6 +1031,22 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
                       />
                       <span>{subTitle}</span>
                     </div>
+                    {sub.badge && (
+                      <span
+                        style={{
+                          background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+                          color: '#fff',
+                          fontSize: '0.62rem',
+                          fontWeight: 800,
+                          padding: '1px 6px',
+                          borderRadius: 4,
+                          letterSpacing: '0.5px',
+                          boxShadow: '0 0 8px rgba(168,85,247,0.35)',
+                        }}
+                      >
+                        {sub.badge}
+                      </span>
+                    )}
                     {sub.name.includes('Alerts') && totalAlertsCount > 0 && (
                       <span
                         style={{

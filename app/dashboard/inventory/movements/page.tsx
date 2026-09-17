@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../../components/auth-guard';
 import { Shell } from '../../../../components/shell';
+import { ExportMenu } from '../../../../components/export-menu';
 import { api } from '../../../../lib/api';
 import { useTranslation } from '../../../../provider';
 import {
@@ -51,9 +52,25 @@ export default function StockMovementsPage() {
               { label: t('inventory.stock_movements') },
             ]}
             action={
-              <Link className="primary-button" href="/dashboard/inventory/adjustments">
-                {t('inventory.new_adjustment_btn')}
-              </Link>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <ExportMenu
+                  filename="StockPilot_Stock_Movements"
+                  columns={[
+                    { header: t('common.date'), key: 'createdAt', formatter: (r) => r.createdAt || r.movementDate ? new Date(r.createdAt || r.movementDate).toLocaleDateString() : '—' },
+                    { header: t('inventory.product'), key: 'product.name', formatter: (r) => r.product?.name || '—' },
+                    { header: t('products.sku'), key: 'product.sku', formatter: (r) => r.product?.sku || '—' },
+                    { header: t('inventory.movement_type'), key: 'type' },
+                    { header: t('inventory.quantity'), key: 'quantity' },
+                    { header: t('inventory.unit_cost'), key: 'unitCost', formatter: (r) => r.unitCost ?? '—' },
+                    { header: t('inventory.reason'), key: 'reason', formatter: (r) => r.reason || '—' },
+                    { header: t('common.id'), key: 'id' },
+                  ]}
+                  data={movementsQuery.data?.data || []}
+                />
+                <Link className="primary-button" href="/dashboard/inventory/adjustments">
+                  {t('inventory.new_adjustment_btn')}
+                </Link>
+              </div>
             }
           />
 

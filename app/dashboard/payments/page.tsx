@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../components/auth-guard';
 import { Shell } from '../../../components/shell';
+import { ExportMenu } from '../../../components/export-menu';
 import { api } from '../../../lib/api';
 import { useTranslation } from '../../../provider';
 import {
@@ -50,6 +51,25 @@ export default function PaymentsPage() {
             title={t('payments.title')}
             description={t('payments.description')}
             breadcrumbs={[{ label: t('common.dashboard'), href: '/dashboard' }, { label: t('payments.title') }]}
+            action={
+              <ExportMenu
+                filename="StockPilot_Payments"
+                columns={[
+                  { header: t('common.date'), key: 'date', format: (v) => v ? new Date(v).toLocaleDateString() : '—' },
+                  { header: t('payments.party_type'), key: 'partyType' },
+                  {
+                    header: t('payments.party_name'),
+                    key: 'party',
+                    formatter: (r) => (r.partyType === 'CUSTOMER' ? r.customer?.name : r.supplier?.name) || '—',
+                  },
+                  { header: t('common.amount'), key: 'amount' },
+                  { header: t('common.payment_method'), key: 'method' },
+                  { header: t('activity_logs.reference'), key: 'reference', formatter: (r) => r.reference || '—' },
+                  { header: t('common.status'), key: 'status', formatter: (r) => r.status || 'COMPLETED' },
+                ]}
+                data={paymentsQuery.data?.data || []}
+              />
+            }
           />
 
           <DataTableToolbar>

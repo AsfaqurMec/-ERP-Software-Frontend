@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../../components/auth-guard';
 import { Shell } from '../../../../components/shell';
+import { ExportMenu } from '../../../../components/export-menu';
 import { api, formatCurrency } from '../../../../lib/api';
 import {
   CurrencyDisplay,
@@ -213,9 +214,23 @@ export default function ProductDetailPage() {
                 <h3>{t('inventory.stock_movements')}</h3>
                 <p>{t('inventory.audit_trail_desc')}</p>
               </div>
-              <Link href={`/dashboard/inventory/movements?productId=${p.id}`} style={{ fontSize: 12, color: '#5068e6' }}>
-                {t('inventory.stock_movements')} →
-              </Link>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <ExportMenu
+                  filename={`StockPilot_${p.name.replace(/\s+/g, '_')}_Movements`}
+                  columns={[
+                    { header: t('common.date'), key: 'movementDate', format: (v: any) => v ? new Date(v).toLocaleDateString() : '—' },
+                    { header: t('common.type'), key: 'type' },
+                    { header: t('documents.qty'), key: 'quantity' },
+                    { header: t('documents.unit_cost'), key: 'unitCost' },
+                    { header: t('inventory.reason'), key: 'reason' },
+                    { header: t('activity_logs.reference'), key: 'referenceType' },
+                  ]}
+                  data={p.movements || []}
+                />
+                <Link href={`/dashboard/inventory/movements?productId=${p.id}`} style={{ fontSize: 12, color: '#5068e6' }}>
+                  {t('inventory.stock_movements')} →
+                </Link>
+              </div>
             </div>
             <DataTable
               columns={[

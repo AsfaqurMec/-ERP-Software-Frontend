@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../components/auth-guard';
 import { Shell } from '../../../components/shell';
+import { ExportMenu } from '../../../components/export-menu';
 import { api, extractItems } from '../../../lib/api';
 import { useTranslation } from '../../../provider';
 import {
@@ -57,9 +58,24 @@ export default function CategoriesPage() {
             description={t('categories.description')}
             breadcrumbs={[{ label: t('common.dashboard'), href: '/dashboard' }, { label: t('categories.title') }]}
             action={
-              <Link className="primary-button" href="/dashboard/categories/create">
-                {t('categories.add_category')}
-              </Link>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <ExportMenu
+                  filename="StockPilot_Categories"
+                  columns={[
+                    { header: t('categories.title'), key: 'name' },
+                    { header: t('common.description'), key: 'description' },
+                    { header: t('categories.product_count'), key: 'metrics.productCount', formatter: (r: Category) => r.metrics?.productCount ?? 0 },
+                    { header: t('categories.total_sales'), key: 'metrics.sales', formatter: (r: Category) => r.metrics?.sales ?? 0 },
+                    { header: t('categories.purchases'), key: 'metrics.purchases', formatter: (r: Category) => r.metrics?.purchases ?? 0 },
+                    { header: t('categories.gross_profit'), key: 'metrics.profit', formatter: (r: Category) => r.metrics?.profit ?? 0 },
+                    { header: t('common.status'), key: 'status' },
+                  ]}
+                  data={filtered}
+                />
+                <Link className="primary-button" href="/dashboard/categories/create">
+                  {t('categories.add_category')}
+                </Link>
+              </div>
             }
           />
 

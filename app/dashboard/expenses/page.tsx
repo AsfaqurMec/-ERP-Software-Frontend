@@ -4,6 +4,7 @@ import React, { FormEvent, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../components/auth-guard';
 import { Shell } from '../../../components/shell';
+import { ExportMenu } from '../../../components/export-menu';
 import { api } from '../../../lib/api';
 import { useTranslation } from '../../../provider';
 import {
@@ -109,9 +110,23 @@ export default function ExpensesPage() {
             description={t('expenses.description')}
             breadcrumbs={[{ label: t('common.dashboard'), href: '/dashboard' }, { label: t('expenses.title') }]}
             action={
-              <button type="button" className="primary-button" onClick={() => setModalOpen(true)}>
-                {t('expenses.add_expense')}
-              </button>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <ExportMenu
+                  filename="StockPilot_Expenses"
+                  columns={[
+                    { header: t('common.date'), key: 'date', format: (v) => v ? new Date(v).toLocaleDateString() : '—' },
+                    { header: t('expenses.category'), key: 'category' },
+                    { header: t('expenses.amount'), key: 'amount' },
+                    { header: t('expenses.payment_method'), key: 'paymentMethod' },
+                    { header: t('expenses.description_label'), key: 'description' },
+                    { header: t('common.notes'), key: 'note' },
+                  ]}
+                  data={expensesQuery.data?.data || []}
+                />
+                <button type="button" className="primary-button" onClick={() => setModalOpen(true)}>
+                  {t('expenses.add_expense')}
+                </button>
+              </div>
             }
           />
 

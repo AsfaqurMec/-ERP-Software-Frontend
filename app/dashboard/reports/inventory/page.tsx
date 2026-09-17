@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../../components/auth-guard';
 import { Shell } from '../../../../components/shell';
+import { ExportMenu } from '../../../../components/export-menu';
 import { api } from '../../../../lib/api';
 import { useTranslation } from '../../../../provider';
 import {
@@ -40,6 +41,22 @@ export default function InventoryReportPage() {
               { label: t('reports.title'), href: '/dashboard/reports' },
               { label: t('reports.inventory_title') },
             ]}
+            action={
+              <ExportMenu
+                filename="StockPilot_Inventory_Valuation_Report"
+                columns={[
+                  { header: t('products.name'), key: 'name' },
+                  { header: t('products.sku'), key: 'sku' },
+                  { header: t('products.category'), key: 'category.name', formatter: (r) => r.category?.name || '—' },
+                  { header: t('inventory.current_stock'), key: 'stock' },
+                  { header: t('products.purchase_price'), key: 'purchasePrice' },
+                  { header: t('products.stock_value'), key: 'stockValuation', formatter: (r) => (Number(r.stock) * Number(r.purchasePrice || 0)).toFixed(2) },
+                  { header: `${t('products.min_stock')} / ${t('products.max_stock')}`, key: 'threshold', formatter: (r) => `${r.minimumStock} / ${r.maximumStock || '∞'}` },
+                  { header: t('common.status'), key: 'status' },
+                ]}
+                data={inventoryReportQuery.data?.products || []}
+              />
+            }
           />
 
           {inventoryReportQuery.isLoading ? (

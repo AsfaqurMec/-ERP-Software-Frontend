@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../../components/auth-guard';
 import { Shell } from '../../../../components/shell';
+import { ExportMenu } from '../../../../components/export-menu';
 import { api } from '../../../../lib/api';
 import {
   CurrencyDisplay,
@@ -128,7 +129,19 @@ export default function CustomerDetailPage() {
             </section>
 
             <section className="card">
-              <h3>{t('payments.title')}</h3>
+              <div className="card-head">
+                <h3>{t('payments.title')}</h3>
+                <ExportMenu
+                  filename={`StockPilot_${c.name.replace(/\s+/g, '_')}_Payments`}
+                  columns={[
+                    { header: t('common.date'), key: 'date', format: (v: any) => v ? new Date(v).toLocaleDateString() : '—' },
+                    { header: t('common.amount'), key: 'amount' },
+                    { header: t('common.payment_method'), key: 'method' },
+                    { header: t('activity_logs.reference'), key: 'reference' },
+                  ]}
+                  data={c.payments || []}
+                />
+              </div>
               <DataTable columns={[t('common.date'), t('common.amount'), t('common.payment_method'), t('activity_logs.reference')]}>
                 {c.payments && c.payments.length ? (
                   c.payments.map((p: any) => (
@@ -164,6 +177,18 @@ export default function CustomerDetailPage() {
                 <h3>{t('sales.title')}</h3>
                 <p>{t('sales.invoice_number')}</p>
               </div>
+              <ExportMenu
+                filename={`StockPilot_${c.name.replace(/\s+/g, '_')}_Invoices`}
+                columns={[
+                  { header: t('sales.invoice_number'), key: 'invoiceNumber' },
+                  { header: t('common.date'), key: 'saleDate', format: (v: any) => v ? new Date(v).toLocaleDateString() : '—' },
+                  { header: t('common.total'), key: 'grandTotal' },
+                  { header: t('sales.paid_amount'), key: 'paidAmount' },
+                  { header: t('sales.due_amount'), key: 'dueAmount' },
+                  { header: t('common.status'), key: 'status' },
+                ]}
+                data={c.sales || []}
+              />
             </div>
             <DataTable
               columns={[

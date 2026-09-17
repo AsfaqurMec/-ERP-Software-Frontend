@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../components/auth-guard';
 import { Shell } from '../../../components/shell';
+import { ExportMenu } from '../../../components/export-menu';
 import { api } from '../../../lib/api';
 import { useTranslation } from '../../../provider';
 import {
@@ -45,9 +46,23 @@ export default function SuppliersPage() {
             description={t('suppliers.description')}
             breadcrumbs={[{ label: t('common.dashboard'), href: '/dashboard' }, { label: t('suppliers.title') }]}
             action={
-              <Link className="primary-button" href="/dashboard/suppliers/create">
-                {t('suppliers.add_supplier')}
-              </Link>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <ExportMenu
+                  filename="StockPilot_Suppliers"
+                  columns={[
+                    { header: t('suppliers.supplier_name'), key: 'name' },
+                    { header: t('suppliers.company_name'), key: 'company' },
+                    { header: t('common.phone'), key: 'phone' },
+                    { header: t('common.email'), key: 'email' },
+                    { header: t('suppliers.outstanding_due'), key: 'balance', formatter: (r) => r.balance ?? 0 },
+                    { header: t('common.status'), key: 'status' },
+                  ]}
+                  data={query.data?.data || []}
+                />
+                <Link className="primary-button" href="/dashboard/suppliers/create">
+                  {t('suppliers.add_supplier')}
+                </Link>
+              </div>
             }
           />
 

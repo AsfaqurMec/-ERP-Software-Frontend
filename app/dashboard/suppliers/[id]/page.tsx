@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../../components/auth-guard';
 import { Shell } from '../../../../components/shell';
+import { ExportMenu } from '../../../../components/export-menu';
 import { api } from '../../../../lib/api';
 import {
   CurrencyDisplay,
@@ -75,7 +76,21 @@ export default function SupplierDetail() {
             <StatCard label={t('common.status')} value={<StatusBadge value={s.status} />} />
           </StatCardGrid>
           <section className="card">
-            <h3>{t('purchases.title')}</h3>
+            <div className="card-head">
+              <h3>{t('purchases.title')}</h3>
+              <ExportMenu
+                filename={`StockPilot_${s.name.replace(/\s+/g, '_')}_Purchases`}
+                columns={[
+                  { header: t('purchases.purchase_number'), key: 'purchaseNumber' },
+                  { header: t('common.date'), key: 'purchaseDate', format: (v: any) => v ? new Date(v).toLocaleDateString() : '—' },
+                  { header: t('common.total'), key: 'grandTotal' },
+                  { header: t('purchases.paid_amount'), key: 'paidAmount' },
+                  { header: t('purchases.due_amount'), key: 'dueAmount' },
+                  { header: t('common.status'), key: 'status' },
+                ]}
+                data={s.purchases || []}
+              />
+            </div>
             <DataTable
               columns={[
                 t('purchases.purchase_number'),
@@ -109,7 +124,20 @@ export default function SupplierDetail() {
             </DataTable>
           </section>
           <section className="card">
-            <h3>{t('payments.title')}</h3>
+            <div className="card-head">
+              <h3>{t('payments.title')}</h3>
+              <ExportMenu
+                filename={`StockPilot_${s.name.replace(/\s+/g, '_')}_Payments`}
+                columns={[
+                  { header: t('common.date'), key: 'date', format: (v: any) => v ? new Date(v).toLocaleDateString() : '—' },
+                  { header: t('common.amount'), key: 'amount' },
+                  { header: t('common.payment_method'), key: 'method' },
+                  { header: t('activity_logs.reference'), key: 'reference' },
+                  { header: t('common.description'), key: 'note' },
+                ]}
+                data={s.payments || []}
+              />
+            </div>
             <DataTable
               columns={[
                 t('common.date'),

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../components/auth-guard';
 import { Shell } from '../../../components/shell';
+import { ExportMenu } from '../../../components/export-menu';
 import { api } from '../../../lib/api';
 import { useTranslation } from '../../../provider';
 import {
@@ -46,9 +47,22 @@ export default function CustomersPage() {
             description={t('customers.description')}
             breadcrumbs={[{ label: t('common.dashboard'), href: '/dashboard' }, { label: t('customers.title') }]}
             action={
-              <Link className="primary-button" href="/dashboard/customers/create">
-                {t('customers.add_customer')}
-              </Link>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <ExportMenu
+                  filename="StockPilot_Customers"
+                  columns={[
+                    { header: t('customers.customer_name'), key: 'name' },
+                    { header: t('common.phone'), key: 'phone' },
+                    { header: t('common.email'), key: 'email' },
+                    { header: t('customers.outstanding_due'), key: 'balance', formatter: (r) => r.balance ?? 0 },
+                    { header: t('common.status'), key: 'status' },
+                  ]}
+                  data={customersQuery.data?.data || []}
+                />
+                <Link className="primary-button" href="/dashboard/customers/create">
+                  {t('customers.add_customer')}
+                </Link>
+              </div>
             }
           />
 

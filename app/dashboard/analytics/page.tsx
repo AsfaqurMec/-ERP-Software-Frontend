@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../components/auth-guard';
 import { Shell } from '../../../components/shell';
+import { ExportMenu } from '../../../components/export-menu';
 import { api } from '../../../lib/api';
 import {
   CurrencyDisplay,
@@ -256,7 +257,21 @@ export default function AnalyticsPage() {
               {tab === 'products' && (
                 <div style={{ display: 'grid', gap: 20 }}>
                   <section className="card">
-                    <h3>Top Selling Products (By Volume Sold)</h3>
+                    <div className="card-head">
+                      <h3>Top Selling Products (By Volume Sold)</h3>
+                      <ExportMenu
+                        filename="StockPilot_Top_Selling_Products"
+                        columns={[
+                          { header: 'Product', key: 'name' },
+                          { header: 'SKU', key: 'sku' },
+                          { header: 'Category', key: 'category' },
+                          { header: 'Units Sold', key: 'quantitySold' },
+                          { header: 'Total Revenue', key: 'revenue' },
+                          { header: 'Profit Contribution', key: 'profit' },
+                        ]}
+                        data={analyticsQuery.data.rankings.topSelling}
+                      />
+                    </div>
                     <DataTable columns={['Product', 'SKU', 'Category', 'Units Sold', 'Total Revenue', 'Profit Contribution']}>
                       {analyticsQuery.data.rankings.topSelling.map((p: any) => (
                         <tr key={p.id}>
@@ -284,7 +299,21 @@ export default function AnalyticsPage() {
                   </section>
 
                   <section className="card">
-                    <h3>Most Profitable Products</h3>
+                    <div className="card-head">
+                      <h3>Most Profitable Products</h3>
+                      <ExportMenu
+                        filename="StockPilot_Most_Profitable_Products"
+                        columns={[
+                          { header: 'Product', key: 'name' },
+                          { header: 'SKU', key: 'sku' },
+                          { header: 'Category', key: 'category' },
+                          { header: 'Gross Profit Earned', key: 'profit' },
+                          { header: 'Revenue', key: 'revenue' },
+                          { header: 'Units Sold', key: 'quantitySold' },
+                        ]}
+                        data={analyticsQuery.data.rankings.mostProfitable}
+                      />
+                    </div>
                     <DataTable columns={['Product', 'SKU', 'Category', 'Gross Profit Earned', 'Revenue', 'Units Sold']}>
                       {analyticsQuery.data.rankings.mostProfitable.map((p: any) => (
                         <tr key={p.id}>
@@ -314,7 +343,20 @@ export default function AnalyticsPage() {
               {tab === 'customers' && (
                 <div style={{ display: 'grid', gap: 20 }}>
                   <section className="card">
-                    <h3>Top Customers by Lifetime Sales</h3>
+                    <div className="card-head">
+                      <h3>Top Customers by Lifetime Sales</h3>
+                      <ExportMenu
+                        filename="StockPilot_Top_Customers"
+                        columns={[
+                          { header: 'Customer', key: 'name' },
+                          { header: 'Phone', key: 'phone' },
+                          { header: 'Total Sales Volume', key: 'totalSales' },
+                          { header: 'Completed Invoices', key: 'orderCount' },
+                          { header: 'Outstanding Due Balance', key: 'dueBalance' },
+                        ]}
+                        data={analyticsQuery.data.customerAnalytics.topBySales}
+                      />
+                    </div>
                     <DataTable columns={['Customer', 'Phone', 'Total Sales Volume', 'Completed Invoices', 'Outstanding Due Balance']}>
                       {analyticsQuery.data.customerAnalytics.topBySales.map((c: any) => (
                         <tr key={c.id}>
@@ -345,7 +387,20 @@ export default function AnalyticsPage() {
               {tab === 'suppliers' && (
                 <div style={{ display: 'grid', gap: 20 }}>
                   <section className="card">
-                    <h3>Top Suppliers by Purchase Value</h3>
+                    <div className="card-head">
+                      <h3>Top Suppliers by Purchase Value</h3>
+                      <ExportMenu
+                        filename="StockPilot_Top_Suppliers"
+                        columns={[
+                          { header: 'Supplier Name', key: 'name' },
+                          { header: 'Company', key: 'company' },
+                          { header: 'Total Procurement Volume', key: 'totalPurchases' },
+                          { header: 'Purchase Orders', key: 'orderCount' },
+                          { header: 'Outstanding Payable', key: 'dueBalance' },
+                        ]}
+                        data={analyticsQuery.data.supplierAnalytics.topByPurchase}
+                      />
+                    </div>
                     <DataTable columns={['Supplier Name', 'Company', 'Total Procurement Volume', 'Purchase Orders', 'Outstanding Payable']}>
                       {analyticsQuery.data.supplierAnalytics.topByPurchase.map((s: any) => (
                         <tr key={s.id}>

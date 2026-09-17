@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../../components/auth-guard';
 import { Shell } from '../../../../components/shell';
+import { ExportMenu } from '../../../../components/export-menu';
 import { api } from '../../../../lib/api';
 import { useTranslation } from '../../../../provider';
 import {
@@ -45,6 +46,20 @@ export default function SalesReportPage() {
             ]}
             action={
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                <ExportMenu
+                  filename={`StockPilot_Sales_Report_${from}_to_${to}`}
+                  columns={[
+                    { header: t('sales.invoice_number'), key: 'invoiceNumber' },
+                    { header: t('common.date'), key: 'saleDate', format: (v) => v ? new Date(v).toLocaleDateString() : '—' },
+                    { header: t('sales.customer'), key: 'customer.name', formatter: (r) => r.customer ? r.customer.name : t('common.walk_in_customer') },
+                    { header: t('products.units'), key: 'itemsCount', formatter: (r) => r.items?.length || 0 },
+                    { header: t('sales.grand_total'), key: 'grandTotal' },
+                    { header: t('sales.paid_amount'), key: 'paidAmount' },
+                    { header: t('sales.due_amount'), key: 'dueAmount' },
+                    { header: t('sales.payment_status'), key: 'paymentStatus' },
+                  ]}
+                  data={salesReportQuery.data?.sales || []}
+                />
                 <input
                   type="date"
                   value={from}

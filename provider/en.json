@@ -172,6 +172,7 @@
   "nav": {
     "overview": "Overview",
     "executive_dashboard": "Executive Dashboard",
+    "owner_intelligence": "Intelligence Dashboard",
     "live_alerts": "Live Alerts & Warnings",
     "sales_orders": "Sales & Orders",
     "sales_invoices": "Sales Invoices",

@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../../../components/auth-guard';
 import { Shell } from '../../../../../components/shell';
+import { ExportMenu } from '../../../../../components/export-menu';
 import { api } from '../../../../../lib/api';
 import {
   CurrencyDisplay,
@@ -111,7 +112,18 @@ export default function SalesReturnDetailPage() {
           </div>
 
           <section className="card">
-            <h3>Returned Items</h3>
+            <div className="card-head">
+              <h3>Returned Items</h3>
+              <ExportMenu
+                filename={`StockPilot_Sales_Return_${r.id}_Items`}
+                columns={[
+                  { header: 'Product ID', key: 'productId' },
+                  { header: 'Quantity Returned', key: 'quantity' },
+                  { header: 'Credited Amount', key: 'total' },
+                ]}
+                data={r.items || []}
+              />
+            </div>
             <DataTable columns={['Item ID', 'Quantity Returned', 'Credited Amount']}>
               {r.items?.map((item: any) => (
                 <tr key={item.id}>

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../../components/auth-guard';
 import { Shell } from '../../../../components/shell';
+import { ExportMenu } from '../../../../components/export-menu';
 import { api } from '../../../../lib/api';
 import {
   CurrencyDisplay,
@@ -41,9 +42,23 @@ export default function PurchaseReturnsPage() {
               { label: t('purchases.returns_title') },
             ]}
             action={
-              <Link className="primary-button" href="/dashboard/purchases/returns/create">
-                + {t('purchases.record_return')}
-              </Link>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <ExportMenu
+                  filename="StockPilot_Purchase_Returns"
+                  columns={[
+                    { header: t('common.date'), key: 'date', format: (v) => v ? new Date(v).toLocaleDateString() : '—' },
+                    { header: t('purchases.purchase_number'), key: 'purchase.purchaseNumber', formatter: (r) => r.purchase?.purchaseNumber || '—' },
+                    { header: t('purchases.supplier'), key: 'purchase.supplier.name', formatter: (r) => r.purchase?.supplier?.name || '—' },
+                    { header: t('common.total'), key: 'total' },
+                    { header: t('inventory.reason'), key: 'reason', formatter: (r) => r.reason || '—' },
+                    { header: t('products.units'), key: 'itemsCount', formatter: (r) => r.items?.length || 0 },
+                  ]}
+                  data={returnsQuery.data?.data || []}
+                />
+                <Link className="primary-button" href="/dashboard/purchases/returns/create">
+                  + {t('purchases.record_return')}
+                </Link>
+              </div>
             }
           />
 

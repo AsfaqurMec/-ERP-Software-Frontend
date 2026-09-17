@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { AuthGuard } from '../../../../components/auth-guard';
 import { Shell } from '../../../../components/shell';
+import { ExportMenu } from '../../../../components/export-menu';
 import { api } from '../../../../lib/api';
 import {
   CurrencyDisplay,
@@ -51,9 +52,26 @@ export default function StockTrackingPage() {
               { label: 'Stock Position' },
             ]}
             action={
-              <Link className="primary-button" href="/dashboard/inventory/adjustments">
-                + Adjust Stock
-              </Link>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <ExportMenu
+                  filename="StockPilot_Stock_Position"
+                  columns={[
+                    { header: 'Product', key: 'name' },
+                    { header: 'SKU', key: 'sku' },
+                    { header: 'Category', key: 'category.name', formatter: (r) => r.category?.name || '—' },
+                    { header: 'Current Stock', key: 'stock' },
+                    { header: 'Avg Purchase Cost', key: 'averageCost', formatter: (r) => r.averageCost ?? r.purchasePrice ?? 0 },
+                    { header: 'Total Stock Value', key: 'stockValue', formatter: (r) => (Number(r.stock) * Number(r.averageCost || r.purchasePrice || 0)).toFixed(2) },
+                    { header: 'Min Stock', key: 'minimumStock', formatter: (r) => r.minimumStock ?? 0 },
+                    { header: 'Max Stock', key: 'maximumStock', formatter: (r) => r.maximumStock ?? '—' },
+                    { header: 'Status', key: 'status' },
+                  ]}
+                  data={productsQuery.data?.data || []}
+                />
+                <Link className="primary-button" href="/dashboard/inventory/adjustments">
+                  + Adjust Stock
+                </Link>
+              </div>
             }
           />
 

@@ -14,6 +14,7 @@ export interface UserSession {
   customRole?: { id: string; name: string } | null;
   status: 'ACTIVE' | 'INACTIVE';
   permissions: string[];
+  isGuest?: boolean;
   lastLoginAt?: string | null;
   createdAt: string;
 }
@@ -30,9 +31,18 @@ export function usePermissions() {
   const { data: user, isLoading } = useCurrentUser();
 
   const permissions = user?.permissions || [];
-  const isSuperAdmin = user?.role === 'SUPER_ADMIN' || permissions.includes('*');
+  const isGuest = Boolean(user?.isGuest || user?.email === 'guest@stockpilot.io');
+  const isSuperAdmin = (user?.role === 'SUPER_ADMIN' || permissions.includes('*')) && !isGuest;
 
   function hasPermission(permission: string | string[]): boolean {
+    if (isGuest) {
+      const isReadOnly = (p: string) => p.endsWith('.read') || p === 'analytics.read' || p === 'reports.read';
+      if (Array.isArray(permission)) {
+        return permission.some((p) => isReadOnly(p) && (permissions.includes(p) || permissions.includes('*')));
+      }
+      return isReadOnly(permission) && (permissions.includes(permission) || permissions.includes('*'));
+    }
+
     if (isSuperAdmin) return true;
 
     if (Array.isArray(permission)) {
@@ -45,6 +55,8 @@ export function usePermissions() {
   return {
     permissions,
     isSuperAdmin,
+    isGuest,
+    canEdit: !isGuest,
     hasPermission,
     isLoading,
     user,

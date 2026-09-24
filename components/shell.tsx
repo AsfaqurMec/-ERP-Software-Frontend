@@ -22,6 +22,7 @@ import {
   ClipboardList,
   Coins,
   DollarSign,
+  Eye,
   FileSpreadsheet,
   FileText,
   History,
@@ -304,6 +305,7 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
   const { data: currentUser } = useCurrentUser();
 
   const activeUser = currentUser || user;
+  const isGuest = Boolean((activeUser as any)?.isGuest || activeUser?.email === 'guest@stockpilot.io');
 
   const currentDateStr = new Date().toLocaleDateString('en-BD', {
     weekday: 'long',
@@ -739,6 +741,7 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
 
                     const subTitle = sub.nameKey ? t(sub.nameKey) : sub.name;
                     const isAction = sub.name.startsWith('+');
+                    if (isGuest && isAction) return null;
 
                     return (
                       <Link
@@ -880,10 +883,15 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
               }}
             >
               <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#f8fafc', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {activeUser?.name || 'Administrator'}
+                {activeUser?.name || (isGuest ? 'Guest Super Admin' : 'Administrator')}
               </div>
-              <div style={{ fontSize: '0.68rem', color: '#818cf8', fontWeight: 600, textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {activeUser?.role || 'SUPER_ADMIN'}
+              <div style={{ fontSize: '0.68rem', color: isGuest ? '#38bdf8' : '#818cf8', fontWeight: 600, textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span>{activeUser?.role || 'SUPER_ADMIN'}</span>
+                {isGuest && (
+                  <span style={{ fontSize: '0.55rem', background: 'rgba(56, 189, 248, 0.2)', color: '#38bdf8', padding: '1px 4px', borderRadius: 3, fontWeight: 700 }}>
+                    VIEW ONLY
+                  </span>
+                )}
               </div>
             </div>
           </Link>
@@ -998,6 +1006,7 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
 
                 const subTitle = sub.nameKey ? t(sub.nameKey) : sub.name;
                 const isAction = sub.name.startsWith('+');
+                if (isGuest && isAction) return null;
 
                 return (
                   <Link
@@ -1120,23 +1129,44 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
             <LanguageSwitcher variant="light" showLabel={true} />
 
             {/* Quick Actions Shortcuts */}
-            <Link
-              href="/dashboard/sales/create"
-              className="primary"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 5,
-                textDecoration: 'none',
-                fontSize: '0.8rem',
-                padding: '7px 12px',
-                borderRadius: 6,
-                fontWeight: 600,
-              }}
-            >
-              <PlusCircle size={14} />
-              <span>{t('nav.create_sale').replace('+', '').trim()}</span>
-            </Link>
+            {isGuest ? (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontSize: '0.78rem',
+                  padding: '6px 12px',
+                  borderRadius: 6,
+                  fontWeight: 600,
+                  background: '#eff6ff',
+                  color: '#1d4ed8',
+                  border: '1px solid #bfdbfe',
+                }}
+                title={t('auth.guest_banner_desc')}
+              >
+                <Eye size={14} color="#2563eb" />
+                <span>{t('auth.guest_readonly_badge')}</span>
+              </div>
+            ) : (
+              <Link
+                href="/dashboard/sales/create"
+                className="primary"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  textDecoration: 'none',
+                  fontSize: '0.8rem',
+                  padding: '7px 12px',
+                  borderRadius: 6,
+                  fontWeight: 600,
+                }}
+              >
+                <PlusCircle size={14} />
+                <span>{t('nav.create_sale').replace('+', '').trim()}</span>
+              </Link>
+            )}
 
             {/* Notification Bell Badge */}
             <Link
@@ -1234,6 +1264,82 @@ function ShellRoot({ children }: { children: React.ReactNode }) {
             </Link>
           </div>
         </header>
+
+        {/* Guest Mode Super Admin View-Only Banner */}
+        {isGuest && (
+          <div
+            style={{
+              marginBottom: 20,
+              padding: '12px 18px',
+              borderRadius: 10,
+              background: 'linear-gradient(90deg, #eff6ff 0%, #f5f3ff 100%)',
+              border: '1px solid #c7d2fe',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12,
+              boxShadow: '0 2px 8px rgba(99, 102, 241, 0.06)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                  color: '#ffffff',
+                  display: 'grid',
+                  placeItems: 'center',
+                  flexShrink: 0,
+                  boxShadow: '0 2px 6px rgba(79, 70, 229, 0.3)',
+                }}
+              >
+                <Eye size={18} />
+              </div>
+              <div>
+                <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#1e1b4b', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span>{t('auth.guest_banner_title')}</span>
+                  <span
+                    style={{
+                      fontSize: '0.65rem',
+                      fontWeight: 800,
+                      background: '#e0e7ff',
+                      color: '#4338ca',
+                      padding: '2px 7px',
+                      borderRadius: 4,
+                      letterSpacing: '0.5px',
+                    }}
+                  >
+                    SUPER_ADMIN
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.78rem', color: '#475569', marginTop: 2 }}>
+                  {t('auth.guest_banner_desc')}
+                </div>
+              </div>
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                background: '#ffffff',
+                padding: '5px 12px',
+                borderRadius: 6,
+                border: '1px solid #cbd5e1',
+                fontSize: '0.74rem',
+                fontWeight: 700,
+                color: '#4338ca',
+                whiteSpace: 'nowrap',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+              }}
+            >
+              <ShieldCheck size={14} color="#6366f1" />
+              <span>{t('auth.guest_readonly_badge')}</span>
+            </div>
+          </div>
+        )}
 
         {children}
       </main>

@@ -9,6 +9,7 @@ export type Session = {
   name: string;
   email: string;
   role: string;
+  isGuest?: boolean;
 };
 
 interface AuthContextValue {

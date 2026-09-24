@@ -18,9 +18,27 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [guestLoading, setGuestLoading] = useState(false);
 
   const siteName = settings?.business_name || 'ব্যবসারথি';
   const siteLogo = settings?.business_logo;
+
+  async function handleGuestLogin() {
+    setError('');
+    setGuestLoading(true);
+    try {
+      const result = await api<{ token: string; user: { name: string; role: string; isGuest?: boolean } }>('/auth/guest', {
+        method: 'POST',
+      });
+      localStorage.setItem('token', result.token);
+      localStorage.setItem('user', JSON.stringify(result.user));
+      router.replace('/dashboard');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to sign in as guest.');
+    } finally {
+      setGuestLoading(false);
+    }
+  }
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -192,7 +210,7 @@ export default function Login() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || guestLoading}
             style={{
               marginTop: 22,
               width: '100%',
@@ -203,13 +221,69 @@ export default function Login() {
               color: '#ffffff',
               fontWeight: 600,
               fontSize: '0.92rem',
-              cursor: loading ? 'not-allowed' : 'pointer',
+              cursor: (loading || guestLoading) ? 'not-allowed' : 'pointer',
               opacity: loading ? 0.75 : 1,
               boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)',
             }}
           >
             {loading ? t('auth.authenticating') : t('auth.sign_in_securely')}
           </button>
+
+          {/* Visual Divider */}
+          <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0 16px', gap: 12 }}>
+            <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
+            <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700, letterSpacing: '0.5px' }}>
+              {t('auth.or_continue_with')}
+            </span>
+            <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
+          </div>
+
+          {/* Guest Mode Instant 1-Click Access */}
+          <button
+            type="button"
+            onClick={handleGuestLogin}
+            disabled={guestLoading || loading}
+            style={{
+              width: '100%',
+              padding: '11px 16px',
+              borderRadius: 8,
+              border: '1.5px solid #6366f1',
+              background: '#ffffff',
+              color: '#4338ca',
+              fontWeight: 700,
+              fontSize: '0.92rem',
+              cursor: (guestLoading || loading) ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+              boxShadow: '0 2px 8px rgba(99, 102, 241, 0.1)',
+            }}
+            onMouseEnter={(e) => {
+              if (!guestLoading && !loading) {
+                e.currentTarget.style.background = 'linear-gradient(135deg, #4f46e5 0%, #3730a3 100%)';
+                e.currentTarget.style.color = '#ffffff';
+                e.currentTarget.style.borderColor = 'transparent';
+                e.currentTarget.style.boxShadow = '0 4px 16px rgba(79, 70, 229, 0.35)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!guestLoading && !loading) {
+                e.currentTarget.style.background = '#ffffff';
+                e.currentTarget.style.color = '#4338ca';
+                e.currentTarget.style.borderColor = '#6366f1';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(99, 102, 241, 0.1)';
+              }
+            }}
+          >
+            <Eye size={17} />
+            <span>{guestLoading ? t('auth.logging_in_guest') : t('auth.explore_as_guest')}</span>
+          </button>
+
+          <p style={{ textAlign: 'center', fontSize: '0.74rem', color: '#64748b', marginTop: 10, marginBottom: 0, lineHeight: 1.4 }}>
+            {t('auth.guest_mode_note')}
+          </p>
         </form>
       </div>
     </div>

@@ -23,6 +23,24 @@ export async function api<T = any>(path: string, options: RequestInit = {}): Pro
   const base = getApiBaseUrl();
   const token = typeof window === 'undefined' ? null : localStorage.getItem('token');
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
+
+  // Client-side safeguard: Prevent mutating requests in Guest Mode
+  const method = (options.method || 'GET').toUpperCase();
+  if (typeof window !== 'undefined' && !['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+    try {
+      const stored = localStorage.getItem('user');
+      if (stored) {
+        const u = JSON.parse(stored);
+        if ((u?.isGuest || u?.email === 'guest@stockpilot.io') && !cleanPath.includes('/auth/logout')) {
+          throw new Error('Guest mode is view-only. You cannot create, edit, or delete data.');
+        }
+      }
+    } catch (e: any) {
+      if (e?.message?.includes('Guest mode is view-only')) {
+        throw e;
+      }
+    }
+  }
   
   let response: Response;
   try {

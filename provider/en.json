@@ -131,7 +131,15 @@
     "sign_in_securely": "Sign In Securely",
     "signed_in_as": "Signed in as",
     "session_expired": "Session expired. Please log in again.",
-    "logged_out": "Successfully logged out."
+    "logged_out": "Successfully logged out.",
+    "or_continue_with": "OR",
+    "explore_as_guest": "Explore as Guest",
+    "logging_in_guest": "Entering Guest Mode…",
+    "guest_mode_note": "⚡ Instant 1-click access with full Super Admin view permissions.",
+    "guest_banner_title": "Guest Mode (Super Admin — View Only)",
+    "guest_banner_desc": "You are currently exploring as Guest Super Admin. All modules, reports, and data are visible, but creating, editing, and deleting records are disabled.",
+    "guest_readonly_badge": "VIEW ONLY (GUEST)",
+    "guest_action_disabled": "Action disabled in Guest Mode"
   },
   "status": {
     "active": "Active",

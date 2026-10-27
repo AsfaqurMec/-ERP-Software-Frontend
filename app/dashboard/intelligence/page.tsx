@@ -28,6 +28,7 @@ import {
   PackagePlus,
   ArrowUpRight,
   ArrowDownRight,
+  ArrowRight,
   Percent,
   ShoppingBag,
   Sliders,
@@ -78,6 +79,49 @@ export default function OwnerIntelligencePage() {
     queryFn: () => api<any>(`/analytics/intelligence?${queryParams}`),
     staleTime: 60 * 1000,
   });
+
+  const briefingQuery = useQuery<any>({
+    queryKey: ['morning-action-briefing'],
+    queryFn: () => api<any>('/analytics/intelligence/briefing'),
+    staleTime: 60 * 1000,
+  });
+
+  const [completedActionIds, setCompletedActionIds] = useState<Set<string>>(new Set());
+  const [executingActionId, setExecutingActionId] = useState<string | null>(null);
+  const [actionToast, setActionToast] = useState<string | null>(null);
+
+  const handleExecuteAction = async (action: any) => {
+    if (action.actionType === 'SEND_WHATSAPP') {
+      if (action.actionPayload?.url) {
+        window.open(action.actionPayload.url, '_blank');
+        setCompletedActionIds((prev) => new Set(prev).add(action.id));
+        setActionToast(`💬 WhatsApp message opened for ${action.actionPayload.customerName}`);
+        setTimeout(() => setActionToast(null), 4000);
+      }
+      return;
+    }
+
+    setExecutingActionId(action.id);
+    try {
+      const res = await api<any>('/analytics/intelligence/actions/execute', {
+        method: 'POST',
+        body: JSON.stringify({
+          actionType: action.actionType,
+          payload: action.actionPayload,
+        }),
+      });
+
+      setCompletedActionIds((prev) => new Set(prev).add(action.id));
+      setActionToast(res.message || 'Action executed successfully!');
+      refetch();
+      briefingQuery.refetch();
+      setTimeout(() => setActionToast(null), 4000);
+    } catch (err: any) {
+      alert(err?.message || 'Action execution failed');
+    } finally {
+      setExecutingActionId(null);
+    }
+  };
 
   const timeframes = [
     { id: 'today', label: 'Today' },
@@ -267,6 +311,264 @@ export default function OwnerIntelligencePage() {
                 onChange={(e) => setCustomTo(e.target.value)}
                 style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}
               />
+            </div>
+          )}
+
+          {/* Interactive Toast Notification */}
+          {actionToast && (
+            <div
+              style={{
+                padding: '12px 20px',
+                borderRadius: 10,
+                backgroundColor: '#16a34a',
+                color: '#ffffff',
+                fontWeight: 600,
+                fontSize: 14,
+                marginBottom: 20,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                boxShadow: '0 4px 14px rgba(22, 163, 74, 0.35)',
+              }}
+            >
+              <CheckCircle2 size={20} />
+              {actionToast}
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* 60-SECOND DAILY EXECUTIVE ACTION BRIEFING & 1-CLICK RESOLUTION           */}
+          {/* ========================================================================= */}
+          {briefingQuery.data && (
+            <div
+              style={{
+                background: '#ffffff',
+                borderRadius: 16,
+                border: '1px solid #e2e8f0',
+                padding: 24,
+                marginBottom: 24,
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.04)',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: 16,
+                  marginBottom: 20,
+                  borderBottom: '1px solid #f1f5f9',
+                  paddingBottom: 16,
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        padding: '3px 10px',
+                        borderRadius: 20,
+                        fontSize: 11,
+                        fontWeight: 700,
+                        backgroundColor: '#e0e7ff',
+                        color: '#4338ca',
+                      }}
+                    >
+                      <Zap size={13} /> {briefingQuery.data.greeting}
+                    </span>
+                    <span style={{ fontSize: 12, color: '#94a3b8' }}>
+                      Generated {new Date(briefingQuery.data.generatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#0f172a' }}>
+                    ⚡ 60-Second Executive Action Center
+                  </h2>
+                  <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>
+                    Real-time AI decisions synthesized across inventory runway, debt aging, and profit margins. Review and execute with 1 click.
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  <div style={{ padding: '8px 14px', borderRadius: 8, background: '#fef2f2', border: '1px solid #fee2e2' }}>
+                    <div style={{ fontSize: 11, color: '#991b1b', fontWeight: 600 }}>Capital at Risk</div>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: '#ef4444' }}>
+                      {money(briefingQuery.data.summary?.capitalAtRisk || 0)}
+                    </div>
+                  </div>
+                  <div style={{ padding: '8px 14px', borderRadius: 8, background: '#f0fdf4', border: '1px solid #dcfce7' }}>
+                    <div style={{ fontSize: 11, color: '#166534', fontWeight: 600 }}>Revenue Protected</div>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: '#16a34a' }}>
+                      {money(briefingQuery.data.summary?.potentialRevenueProtection || 0)}
+                    </div>
+                  </div>
+                  <div style={{ padding: '8px 14px', borderRadius: 8, background: '#eff6ff', border: '1px solid #dbeafe' }}>
+                    <div style={{ fontSize: 11, color: '#1e40af', fontWeight: 600 }}>Profit Boost Opportunity</div>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: '#2563eb' }}>
+                      +{money(briefingQuery.data.summary?.monthlyProfitBoostOpportunity || 0)}/mo
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Cards Grid */}
+              {briefingQuery.data.actions?.length === 0 ? (
+                <div style={{ padding: 24, textAlign: 'center', color: '#16a34a', fontWeight: 600, fontSize: 14 }}>
+                  🎉 All operational fronts are currently optimal! No critical stockouts, overdue debts, or margin anomalies require immediate action.
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                    gap: 16,
+                  }}
+                >
+                  {briefingQuery.data.actions?.map((act: any) => {
+                    const isDone = completedActionIds.has(act.id);
+                    return (
+                      <div
+                        key={act.id}
+                        style={{
+                          borderRadius: 12,
+                          border: isDone ? '1px solid #bbf7d0' : '1px solid #e2e8f0',
+                          background: isDone ? '#f0fdf4' : '#fafafa',
+                          padding: 16,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                          transition: 'all 0.2s ease',
+                        }}
+                      >
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                            <span
+                              style={{
+                                padding: '2px 8px',
+                                borderRadius: 4,
+                                fontSize: 11,
+                                fontWeight: 700,
+                                backgroundColor:
+                                  act.category === 'RESTOCK'
+                                    ? '#dbeafe'
+                                    : act.category === 'DEBT_COLLECTION'
+                                    ? '#fef3c7'
+                                    : act.category === 'PRICING'
+                                    ? '#f3e8ff'
+                                    : '#fee2e2',
+                                color:
+                                  act.category === 'RESTOCK'
+                                    ? '#1e40af'
+                                    : act.category === 'DEBT_COLLECTION'
+                                    ? '#92400e'
+                                    : act.category === 'PRICING'
+                                    ? '#6b21a8'
+                                    : '#991b1b',
+                              }}
+                            >
+                              {act.category === 'RESTOCK'
+                                ? '📦 REORDER ALERT'
+                                : act.category === 'DEBT_COLLECTION'
+                                ? '💰 DEBT COLLECTION'
+                                : act.category === 'PRICING'
+                                ? '🏷️ MARGIN OPTIMIZATION'
+                                : '🚨 INVENTORY AUDIT'}
+                            </span>
+                            <span
+                              style={{
+                                fontSize: 10,
+                                fontWeight: 700,
+                                padding: '2px 6px',
+                                borderRadius: 4,
+                                backgroundColor: act.severity === 'CRITICAL' ? '#fecaca' : '#fed7aa',
+                                color: act.severity === 'CRITICAL' ? '#991b1b' : '#9a3412',
+                              }}
+                            >
+                              {act.severity}
+                            </span>
+                          </div>
+
+                          <h4 style={{ margin: '0 0 6px 0', fontSize: 14, fontWeight: 700, color: '#1e293b' }}>
+                            {act.title}
+                          </h4>
+                          <p style={{ margin: '0 0 12px 0', fontSize: 12, color: '#64748b', lineHeight: 1.5 }}>
+                            {act.description}
+                          </p>
+
+                          <div
+                            style={{
+                              display: 'inline-block',
+                              padding: '3px 8px',
+                              borderRadius: 6,
+                              fontSize: 11,
+                              fontWeight: 700,
+                              background: '#ffffff',
+                              border: '1px solid #e2e8f0',
+                              color: '#0f172a',
+                              marginBottom: 14,
+                            }}
+                          >
+                            ⚡ {act.impactMetric}
+                          </div>
+                        </div>
+
+                        <div>
+                          {isDone ? (
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 6,
+                                fontSize: 13,
+                                fontWeight: 700,
+                                color: '#16a34a',
+                              }}
+                            >
+                              <CheckCircle2 size={16} /> Action Executed
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleExecuteAction(act)}
+                              disabled={executingActionId === act.id}
+                              style={{
+                                width: '100%',
+                                padding: '9px 14px',
+                                borderRadius: 8,
+                                border: 0,
+                                background:
+                                  act.actionType === 'SEND_WHATSAPP'
+                                    ? 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)'
+                                    : 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
+                                color: '#ffffff',
+                                fontWeight: 700,
+                                fontSize: 12,
+                                cursor: executingActionId === act.id ? 'not-allowed' : 'pointer',
+                                opacity: executingActionId === act.id ? 0.7 : 1,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: 6,
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+                              }}
+                            >
+                              {executingActionId === act.id ? (
+                                'Processing…'
+                              ) : (
+                                <>
+                                  {act.actionButtonText} <ArrowRight size={14} />
+                                </>
+                              )}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 

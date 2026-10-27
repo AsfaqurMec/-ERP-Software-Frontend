@@ -23,9 +23,12 @@ import {
   SearchInput,
   StatusBadge,
 } from '../../../components/ui';
+import { Sparkles } from 'lucide-react';
+import { AIBillScannerModal } from '../../../components/ai-bill-scanner-modal';
 
 export default function PurchasesPage() {
   const { t } = useTranslation();
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [search, setSearch] = useState('');
@@ -69,6 +72,25 @@ export default function PurchasesPage() {
                   ]}
                   data={purchasesQuery.data?.data || []}
                 />
+                <button
+                  type="button"
+                  onClick={() => setIsScannerOpen(true)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '8px 14px',
+                    borderRadius: 8,
+                    border: '1px solid rgba(99, 102, 241, 0.3)',
+                    background: 'rgba(99, 102, 241, 0.08)',
+                    color: '#4f46e5',
+                    fontWeight: 600,
+                    fontSize: 13,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <Sparkles size={15} /> AI Bill Scanner
+                </button>
                 <Link className="primary-button" href="/dashboard/purchases/create">
                   {t('purchases.create_purchase')}
                 </Link>
@@ -188,6 +210,8 @@ export default function PurchasesPage() {
               />
             </>
           )}
+
+          <AIBillScannerModal isOpen={isScannerOpen} onClose={() => setIsScannerOpen(false)} />
         </PageContainer>
       </Shell>
     </AuthGuard>

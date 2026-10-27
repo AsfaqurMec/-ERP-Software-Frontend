@@ -126,6 +126,101 @@ export default function CustomerDetailPage() {
                 <dt>{t('customers.customer_notes')}</dt>
                 <dd style={{ gridColumn: 'span 2' }}>{c.notes || '—'}</dd>
               </dl>
+
+              {c.creditRisk && (
+                <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                    <h4 style={{ margin: 0, fontSize: 15, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      🛡️ Credit Risk & Repayment Profile
+                    </h4>
+                    <span
+                      style={{
+                        padding: '3px 10px',
+                        borderRadius: 6,
+                        fontSize: 12,
+                        fontWeight: 700,
+                        backgroundColor:
+                          c.creditRisk.riskCategory === 'LOW_RISK'
+                            ? 'rgba(16, 185, 129, 0.15)'
+                            : c.creditRisk.riskCategory === 'MEDIUM_RISK'
+                            ? 'rgba(245, 158, 11, 0.15)'
+                            : 'rgba(239, 68, 68, 0.15)',
+                        color:
+                          c.creditRisk.riskCategory === 'LOW_RISK'
+                            ? '#10b981'
+                            : c.creditRisk.riskCategory === 'MEDIUM_RISK'
+                            ? '#f59e0b'
+                            : '#ef4444',
+                        border: `1px solid ${
+                          c.creditRisk.riskCategory === 'LOW_RISK'
+                            ? 'rgba(16, 185, 129, 0.3)'
+                            : c.creditRisk.riskCategory === 'MEDIUM_RISK'
+                            ? 'rgba(245, 158, 11, 0.3)'
+                            : 'rgba(239, 68, 68, 0.3)'
+                        }`,
+                      }}
+                    >
+                      {c.creditRisk.riskCategory === 'LOW_RISK'
+                        ? '🟢 LOW RISK (SAFE)'
+                        : c.creditRisk.riskCategory === 'MEDIUM_RISK'
+                        ? '🟡 MEDIUM RISK'
+                        : '🔴 HIGH RISK (COD ONLY)'}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 16 }}>
+                    <div style={{ padding: 10, background: 'rgba(255,255,255,0.03)', borderRadius: 8 }}>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted, #94a3b8)' }}>Repayment Score</div>
+                      <div style={{ fontSize: 18, fontWeight: 700, color: c.creditRisk.riskScore >= 75 ? '#10b981' : c.creditRisk.riskScore >= 50 ? '#f59e0b' : '#ef4444' }}>
+                        {c.creditRisk.riskScore} / 100
+                      </div>
+                    </div>
+                    <div style={{ padding: 10, background: 'rgba(255,255,255,0.03)', borderRadius: 8 }}>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted, #94a3b8)' }}>Safe Credit Limit</div>
+                      <div style={{ fontSize: 16, fontWeight: 700 }}>
+                        <CurrencyDisplay value={c.creditRisk.recommendedCreditLimit} />
+                      </div>
+                    </div>
+                    <div style={{ padding: 10, background: 'rgba(255,255,255,0.03)', borderRadius: 8 }}>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted, #94a3b8)' }}>Avg Settlement</div>
+                      <div style={{ fontSize: 16, fontWeight: 700 }}>~{c.creditRisk.averageRepaymentDays} days</div>
+                    </div>
+                    <div style={{ padding: 10, background: 'rgba(255,255,255,0.03)', borderRadius: 8 }}>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted, #94a3b8)' }}>Oldest Due</div>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: c.creditRisk.oldestUnpaidDays > 30 ? '#ef4444' : 'inherit' }}>
+                        {c.creditRisk.oldestUnpaidDays} days
+                      </div>
+                    </div>
+                  </div>
+
+                  {c.creditRisk.riskFactors?.length > 0 && (
+                    <div style={{ fontSize: 12, color: 'var(--text-muted, #94a3b8)', marginBottom: 14 }}>
+                      <strong>Risk Note:</strong> {c.creditRisk.riskFactors[0]}
+                    </div>
+                  )}
+
+                  {c.creditRisk.whatsAppReminderUrl && (
+                    <a
+                      href={c.creditRisk.whatsAppReminderUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="primary-button"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        backgroundColor: '#16a34a',
+                        borderColor: '#15803d',
+                        textDecoration: 'none',
+                        fontSize: 13,
+                        padding: '8px 14px',
+                      }}
+                    >
+                      💬 Send WhatsApp Due Reminder
+                    </a>
+                  )}
+                </div>
+              )}
             </section>
 
             <section className="card">

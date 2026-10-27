@@ -1,11 +1,11 @@
 'use client';
 
-import React, { FormEvent, useMemo, useState } from 'react';
+import React, { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { api, extractItems, money } from '../lib/api';
 import { FormActions, FormField, FormSection, LoadingSpinner } from './ui';
-import { Trash2, Plus, AlertCircle, UserPlus, Building2 } from 'lucide-react';
+import { Trash2, Plus, AlertCircle, UserPlus, Building2, ShieldAlert } from 'lucide-react';
 import { useTranslation } from '../provider';
 
 type Mode = 'sale' | 'purchase';
@@ -49,8 +49,43 @@ export function DocumentForm({ mode }: { mode: Mode }) {
     { productId: '', quantity: '1', price: '', discount: '0', tax: '0' },
   ]);
 
+  const [allowCreditOverride, setAllowCreditOverride] = useState(false);
+  const [allowCostOverride, setAllowCostOverride] = useState(false);
+
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // Auto-populate from AI Bill Scanner if present in sessionStorage
+  useEffect(() => {
+    if (!isSale && typeof window !== 'undefined') {
+      const raw = sessionStorage.getItem('scanned_invoice_data');
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed.matchedSupplierId) setPartyId(parsed.matchedSupplierId);
+          if (parsed.invoiceNumber) setInvoiceNumber(parsed.invoiceNumber);
+          if (parsed.invoiceDate) setDate(new Date(parsed.invoiceDate).toISOString().slice(0, 16));
+          if (parsed.discount) setDiscount(String(parsed.discount));
+          if (parsed.tax) setTax(String(parsed.tax));
+          if (parsed.shipping) setShipping(String(parsed.shipping));
+          if (parsed.notes) setNotes(parsed.notes);
+          if (Array.isArray(parsed.items) && parsed.items.length > 0) {
+            const lines = parsed.items.map((it: any) => ({
+              productId: it.matchedProductId || '',
+              quantity: String(it.quantity || 1),
+              price: String(it.unitCost || 0),
+              discount: String(it.discount || 0),
+              tax: String(it.tax || 0),
+            }));
+            setItems(lines);
+          }
+          sessionStorage.removeItem('scanned_invoice_data');
+        } catch (e) {
+          console.error('Failed to parse scanned invoice data', e);
+        }
+      }
+    }
+  }, [isSale]);
 
   const productsQuery = useQuery({
     queryKey: ['document-products-list'],
@@ -60,6 +95,12 @@ export function DocumentForm({ mode }: { mode: Mode }) {
   const partiesQuery = useQuery({
     queryKey: [mode + '-parties-list'],
     queryFn: () => api(isSale ? '/customers?limit=100' : '/suppliers?limit=100'),
+  });
+
+  const creditRiskQuery = useQuery({
+    queryKey: ['customer-credit-risk', partyId],
+    queryFn: () => api<any>(`/customers/${partyId}/credit-risk`),
+    enabled: isSale && Boolean(partyId) && !isNewParty,
   });
 
   const products = extractItems<any>(productsQuery.data);
@@ -87,6 +128,27 @@ export function DocumentForm({ mode }: { mode: Mode }) {
     const p = Number(paid || 0);
     return Math.max(0, grandTotal - p);
   }, [grandTotal, paid]);
+
+  const costSpikeDetected = useMemo(() => {
+    if (isSale) return null;
+    for (const it of items) {
+      if (!it.productId || !it.price) continue;
+      const prod = products.find((p: any) => p.id === it.productId);
+      if (prod) {
+        const baseCost = Number(prod.averageCost || prod.purchasePrice || 0);
+        const inputCost = Number(it.price || 0);
+        if (baseCost > 0) {
+          if (inputCost > baseCost * 4) {
+            return `Cost spike detected for "${prod.name}": ৳${inputCost.toLocaleString()} is >400% of historical average (৳${baseCost.toLocaleString()}).`;
+          }
+          if (inputCost < baseCost * 0.15 && inputCost > 0) {
+            return `Unusually low cost detected for "${prod.name}": ৳${inputCost.toLocaleString()} is <15% of historical average (৳${baseCost.toLocaleString()}).`;
+          }
+        }
+      }
+    }
+    return null;
+  }, [isSale, items, products]);
 
   const addLine = () => {
     setItems((rows) => [...rows, { productId: '', quantity: '1', price: '', discount: '0', tax: '0' }]);
@@ -196,6 +258,7 @@ export function DocumentForm({ mode }: { mode: Mode }) {
         paymentMethod: method,
         notes: notes.trim() || undefined,
         status,
+        ...(isSale ? { allowCreditOverride } : { allowCostOverride }),
       };
 
       const endpoint = isSale ? '/sales' : '/purchases';
@@ -566,6 +629,113 @@ export function DocumentForm({ mode }: { mode: Mode }) {
             </strong>
           </div>
         </div>
+
+        {/* Intelligent Credit Risk Guard (Sale Mode) */}
+        {isSale && dueAmount > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            {!partyId && !isNewParty ? (
+              <div
+                style={{
+                  padding: '12px 16px',
+                  borderRadius: 8,
+                  background: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  color: '#991b1b',
+                  fontSize: 13,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
+              >
+                <ShieldAlert size={18} />
+                <span>
+                  <strong>Credit Sale Policy:</strong> Unpaid balance ({money(dueAmount)}) requires a registered customer account. Select or register a customer above, or collect full payment now.
+                </span>
+              </div>
+            ) : creditRiskQuery.data?.riskCategory === 'HIGH_RISK' ? (
+              <div
+                style={{
+                  padding: '12px 16px',
+                  borderRadius: 8,
+                  background: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  color: '#991b1b',
+                  fontSize: 13,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, marginBottom: 4 }}>
+                  <ShieldAlert size={18} /> 🚨 Credit Sale Blocked: High Default Risk Customer
+                </div>
+                <div>
+                  This customer has an unreliable repayment score ({creditRiskQuery.data.riskScore}/100) with overdue balances. Strict Cash-on-Delivery (COD) policy is enforced.
+                </div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, cursor: 'pointer', fontWeight: 600 }}>
+                  <input
+                    type="checkbox"
+                    checked={allowCreditOverride}
+                    onChange={(e) => setAllowCreditOverride(e.target.checked)}
+                  />
+                  <span>Authorize Manager Credit Override (Acknowledge Default Risk)</span>
+                </label>
+              </div>
+            ) : creditRiskQuery.data &&
+              creditRiskQuery.data.balance + dueAmount > creditRiskQuery.data.recommendedCreditLimit ? (
+              <div
+                style={{
+                  padding: '12px 16px',
+                  borderRadius: 8,
+                  background: '#fffbeb',
+                  border: '1px solid #fde68a',
+                  color: '#92400e',
+                  fontSize: 13,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, marginBottom: 4 }}>
+                  <AlertCircle size={18} /> ⚠️ Safe Credit Limit Exceeded
+                </div>
+                <div>
+                  Safe credit limit for this customer is {money(creditRiskQuery.data.recommendedCreditLimit)}. With this invoice, outstanding due will reach {money(creditRiskQuery.data.balance + dueAmount)}.
+                </div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, cursor: 'pointer', fontWeight: 600 }}>
+                  <input
+                    type="checkbox"
+                    checked={allowCreditOverride}
+                    onChange={(e) => setAllowCreditOverride(e.target.checked)}
+                  />
+                  <span>Authorize Credit Limit Override</span>
+                </label>
+              </div>
+            ) : null}
+          </div>
+        )}
+
+        {/* Cost Spike & Typo Guard (Purchase Mode) */}
+        {!isSale && costSpikeDetected && (
+          <div
+            style={{
+              padding: '12px 16px',
+              borderRadius: 8,
+              background: '#fffbeb',
+              border: '1px solid #fde68a',
+              color: '#92400e',
+              fontSize: 13,
+              marginBottom: 16,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, marginBottom: 4 }}>
+              <AlertCircle size={18} /> ⚠️ Cost Anomaly / Typo Guard
+            </div>
+            <div>{costSpikeDetected}</div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, cursor: 'pointer', fontWeight: 600 }}>
+              <input
+                type="checkbox"
+                checked={allowCostOverride}
+                onChange={(e) => setAllowCostOverride(e.target.checked)}
+              />
+              <span>Confirm Cost Override (This is intentional, not a typing error)</span>
+            </label>
+          </div>
+        )}
 
         <FormField label={t('documents.internal_notes')}>
           <textarea

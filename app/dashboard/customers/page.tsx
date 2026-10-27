@@ -87,7 +87,7 @@ export default function CustomersPage() {
                 columns={[
                   t('customers.customer_name'),
                   t('common.phone'),
-                  t('common.email'),
+                  'Credit Risk',
                   t('customers.outstanding_due'),
                   t('common.status'),
                   t('common.actions'),
@@ -100,7 +100,37 @@ export default function CustomersPage() {
                         <strong>{c.name}</strong>
                       </td>
                       <td>{c.phone || '—'}</td>
-                      <td>{c.email || '—'}</td>
+                      <td>
+                        <span
+                          style={{
+                            padding: '2px 8px',
+                            borderRadius: 4,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            backgroundColor:
+                              c.riskLevel === 'HIGH'
+                                ? 'rgba(239, 68, 68, 0.15)'
+                                : c.riskLevel === 'MEDIUM'
+                                ? 'rgba(245, 158, 11, 0.15)'
+                                : 'rgba(16, 185, 129, 0.15)',
+                            color:
+                              c.riskLevel === 'HIGH'
+                                ? '#ef4444'
+                                : c.riskLevel === 'MEDIUM'
+                                ? '#f59e0b'
+                                : '#10b981',
+                            border: `1px solid ${
+                              c.riskLevel === 'HIGH'
+                                ? 'rgba(239, 68, 68, 0.3)'
+                                : c.riskLevel === 'MEDIUM'
+                                ? 'rgba(245, 158, 11, 0.3)'
+                                : 'rgba(16, 185, 129, 0.3)'
+                            }`,
+                          }}
+                        >
+                          {c.riskLevel === 'HIGH' ? '🔴 High Risk (COD)' : c.riskLevel === 'MEDIUM' ? '🟡 Medium' : '🟢 Low Risk'}
+                        </span>
+                      </td>
                       <td>
                         <span style={{ color: Number(c.balance) > 0 ? '#d96a77' : 'inherit', fontWeight: 600 }}>
                           <CurrencyDisplay value={c.balance} />
@@ -112,6 +142,22 @@ export default function CustomersPage() {
                       <td>
                         <Link href={`/dashboard/customers/${c.id}`}>{t('common.view_details')}</Link> ·{' '}
                         <Link href={`/dashboard/customers/${c.id}/edit`}>{t('common.edit')}</Link>
+                        {Number(c.balance) > 0 && c.phone && (
+                          <>
+                            {' '}·{' '}
+                            <a
+                              href={`https://wa.me/${c.phone.replace(/[^0-9]/g, '').startsWith('880') ? c.phone.replace(/[^0-9]/g, '') : `88${c.phone.replace(/[^0-9]/g, '')}`}?text=${encodeURIComponent(
+                                `Dear ${c.name}, friendly reminder regarding your outstanding balance of ৳${Number(c.balance).toLocaleString()} with StockPilot. Thank you!`
+                              )}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ color: '#16a34a', fontWeight: 600, textDecoration: 'none' }}
+                              title="Send WhatsApp payment reminder"
+                            >
+                              💬 WhatsApp
+                            </a>
+                          </>
+                        )}
                       </td>
                     </tr>
                   ))
